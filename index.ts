@@ -12,10 +12,9 @@ Bun.serve({
 
     if (redirect) {
       const redirectUrl =
-        redirect.url.startsWith('http://') ||
-        redirect.url.startsWith('https://')
-          ? redirect.url
-          : `https://${redirect.url}`
+        redirect.startsWith('http://') || redirect.startsWith('https://')
+          ? redirect
+          : `https://${redirect}`
       return Response.redirect(redirectUrl, 302)
     }
 
@@ -81,17 +80,18 @@ function initializeDatabase() {
   )
 }
 
+type Route = {
+  path: string
+  url: string
+}
+
 function getRedirect(path: string) {
-  return db.query('SELECT url FROM routes WHERE path = ?').get(path) as {
-    url: string
-  } | null
+  const result = db.query('SELECT url FROM routes WHERE path = ?').get(path)
+  return (result as { url: string } | null)?.url
 }
 
 function getAllRoutes() {
-  return db.query('SELECT path, url FROM routes').all() as {
-    path: string
-    url: string
-  }[]
+  return db.query('SELECT path, url FROM routes').all() as Route[]
 }
 
 function createShortcut(path: string, url: string) {

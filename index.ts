@@ -28,17 +28,25 @@ Bun.serve({
       .join('')
 
     const form = `
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <body class="container">
       <h1>URL Shortener</h1>
       No shortcut yet for ${url.pathname.slice(1)}<br /><br />
       <form method="POST">
-        <input name="path" placeholder="Short path" required value="${path}">
-        <input name="url" placeholder="Full URL" required>
-        <button type="submit">Create Shortcut</button>
+        <fieldset class="grid">
+          <input name="path" placeholder="Short path" required value="${path}">
+          <input name="url" placeholder="Full URL" required>
+          <button type="submit">Create Shortcut</button>
+        </fieldset>
       </form>
       <h2>Existing Routes</h2>
       <ul>
         ${routesList}
       </ul>
+    </body>
     `
 
     if (req.method === 'POST') {

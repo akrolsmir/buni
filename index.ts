@@ -10,6 +10,7 @@ Bun.serve({
     const path = url.pathname.slice(1)
     const redirect = getRedirect(path)
 
+    // Redirect if the shortcut already exists
     if (redirect) {
       const redirectUrl =
         redirect.startsWith('http://') || redirect.startsWith('https://')
@@ -18,6 +19,18 @@ Bun.serve({
       return Response.redirect(redirectUrl, 302)
     }
 
+    // Otherwise, if it's a form submission, add the new shortcut
+    if (req.method === 'POST') {
+      const formData = await req.formData()
+      const path = formData.get('path') as string
+      const url = formData.get('url') as string
+
+      if (path && url) {
+        createShortcut(path, url)
+      }
+    }
+
+    // Then render the homepage form
     const routes = getAllRoutes()
     const routesList = routes
       .map(
@@ -47,23 +60,6 @@ Bun.serve({
       </ul>
     </body>
     `
-
-    if (req.method === 'POST') {
-      const formData = await req.formData()
-      const path = formData.get('path') as string
-      const url = formData.get('url') as string
-
-      if (path && url) {
-        createShortcut(path, url)
-        return new Response(
-          `Shortcut created: ${path} -> ${url}<br><a href="/">Return to home</a>`,
-          {
-            status: 201,
-            headers: { 'Content-Type': 'text/html' },
-          }
-        )
-      }
-    }
 
     return new Response(form, {
       status: 404,

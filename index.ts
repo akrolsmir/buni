@@ -19,6 +19,13 @@ Bun.serve({
       return Response.redirect(redirectUrl, 302)
     }
 
+    // If going to /db, send the routes.sqlite file
+    if (path === 'db') {
+      return new Response(Bun.file('routes.sqlite'), {
+        headers: { 'Content-Type': 'application/octet-stream' },
+      })
+    }
+
     // Otherwise, if it's a form submission, add the new shortcut
     if (req.method === 'POST') {
       const formData = await req.formData()

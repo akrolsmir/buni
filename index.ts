@@ -3,6 +3,40 @@ import { Database } from 'bun:sqlite'
 const db = new Database('routes.sqlite')
 initializeDatabase()
 
+export function renderReactComponent(componentCode: string): string {
+  const transpiler = new Bun.Transpiler({
+    loader: 'tsx',
+    target: 'browser',
+    tsconfig: {
+      compilerOptions: {
+        // This uses createElement instead of jsxDEV
+        jsx: 'react',
+      },
+    },
+  })
+  const transpiledCode = transpiler.transformSync(componentCode)
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+      </head>
+      <body>
+        <div id="root"></div>
+        <script type="module">
+          const createElement = React.createElement
+          ${transpiledCode}
+          const root = ReactDOM.createRoot(document.getElementById('root'));
+          root.render(React.createElement(Component));
+        </script>
+      </body>
+    </html>
+  `
+
+  return html
+}
+
 Bun.serve({
   port: 3000,
   async fetch(req) {
@@ -23,6 +57,26 @@ Bun.serve({
     if (path === 'db') {
       return new Response(Bun.file('routes.sqlite'), {
         headers: { 'Content-Type': 'application/octet-stream' },
+      })
+    }
+
+    const reactCounterTsx = `
+    function Component() {
+      const [count, setCount] = React.useState(0);
+      return (
+        <div>
+          <h1>React Counter</h1>
+          <p>Count: {count}</p>
+          <button onClick={() => setCount(count + 1)}>Increment</button>
+        </div>
+      )
+    }
+    `
+
+    if (path === 'counter') {
+      const html = renderReactComponent(reactCounterTsx)
+      return new Response(html, {
+        headers: { 'Content-Type': 'text/html' },
       })
     }
 

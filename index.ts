@@ -19,6 +19,7 @@ export function renderReactComponent(componentCode: string): string {
     <!DOCTYPE html>
     <html>
       <head>
+        <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
         <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
       </head>
@@ -60,17 +61,27 @@ Bun.serve({
       })
     }
 
-    const reactCounterTsx = `
-    function Component() {
-      const [count, setCount] = React.useState(0);
-      return (
-        <div>
-          <h1>React Counter</h1>
-          <p>Count: {count}</p>
-          <button onClick={() => setCount(count + 1)}>Increment</button>
-        </div>
-      )
+    // At /transpile?code=..., transpile the code and return it
+    if (path === 'transpile') {
+      // Accepts POST and GET
+      const code =
+        req.method === 'POST' ? await req.text() : url.searchParams.get('code')
+      const transpiledCode = renderReactComponent(decodeURIComponent(code))
+      return new Response(transpiledCode, {
+        headers: { 'Content-Type': 'text/html' },
+      })
     }
+
+    if (path === 'editor') {
+      // Render the Editor component exported from ./editor.tsx:
+      const editorTsx = await Bun.file('editor.tsx').text()
+      const html = renderReactComponent(editorTsx)
+      return new Response(html, {
+        headers: { 'Content-Type': 'text/html' },
+      })
+    }
+
+    const reactCounterTsx = `
     `
 
     if (path === 'counter') {

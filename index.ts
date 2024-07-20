@@ -72,11 +72,15 @@ Bun.serve({
       })
     }
 
-    if (path === 'editor') {
-      // Render the Editor component exported from ./editor.tsx:
-      const editorTsx = await Bun.file('editor.tsx').text()
-      const html = renderReactComponent(editorTsx)
-      return new Response(html, {
+    // Route to the corresponding file in the /app directory
+    if (path.startsWith('app/')) {
+      const router = new Bun.FileSystemRouter({
+        style: 'nextjs',
+        dir: './',
+      })
+      const match = router.match(url.pathname)
+      const tsx = await Bun.file(match?.filePath ?? '').text()
+      return new Response(renderReactComponent(tsx), {
         headers: { 'Content-Type': 'text/html' },
       })
     }

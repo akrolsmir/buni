@@ -1,5 +1,5 @@
 const TO_RENDER = `
-function Component() {
+function Componentz() {
   return <h1 className="text-3xl text-blue-400">Hello World</h1>
 }
 `
@@ -7,7 +7,7 @@ function Component() {
 // const TO_RENDER = `<h1 className="text-3xl text-blue-400">Hello World</h1>`
 
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
-function Component() {
+export function Componentz() {
   const [code, setCode] = React.useState(TO_RENDER)
   const [transpiled, setTranspiled] = React.useState('')
 

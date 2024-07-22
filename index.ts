@@ -30,7 +30,7 @@ export function renderReactComponent(componentCode: string): string {
           const createElement = React.createElement
           ${transpiledCode}
           const root = ReactDOM.createRoot(document.getElementById('root'));
-          root.render(React.createElement(Component));
+          root.render(React.createElement(Componentz));
         </script>
       </body>
     </html>

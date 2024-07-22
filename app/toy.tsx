@@ -6,7 +6,7 @@ type Market = {
   url: string
 }
 
-export function Component() {
+export function Componentz() {
   const market: Market = randMarket()
   return (
     <div>

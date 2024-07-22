@@ -1,4 +1,5 @@
 import { Database } from 'bun:sqlite'
+import { buniPlugin } from './buni-loader'
 
 const db = new Database('routes.sqlite')
 initializeDatabase()
@@ -79,8 +80,21 @@ Bun.serve({
         dir: './',
       })
       const match = router.match(url.pathname)
-      const tsx = await Bun.file(match?.filePath ?? '').text()
-      return new Response(renderReactComponent(tsx), {
+      const path = match?.filePath ?? ''
+      console.log('path', path)
+
+      // Works on first access, but not on reload??
+      // Is there some kind of caching thing going on?
+      const built = await Bun.build({
+        entrypoints: [path],
+        outdir: './dist',
+        // Reroute eg @/manifold.buni to the url from getRedirect('manifold.buni')
+        // plugins: [buniPlugin],
+      })
+      console.log('built', built)
+
+      const bundled = await built.outputs[0].text()
+      return new Response(renderReactComponent(bundled), {
         headers: { 'Content-Type': 'text/html' },
       })
     }
@@ -144,7 +158,9 @@ Bun.serve({
   },
 })
 
-console.log('URL shortener running on http://localhost:3000')
+console.log(
+  '========== URL shortener running on http://localhost:3000 ==========='
+)
 
 function initializeDatabase() {
   db.run(
@@ -159,7 +175,7 @@ type Route = {
 
 function getRedirect(path: string) {
   const result = db.query('SELECT url FROM routes WHERE path = ?').get(path)
-  return (result as { url: string } | null)?.url
+  return (result as { url: string } | null)?.url ?? ''
 }
 
 function getAllRoutes() {

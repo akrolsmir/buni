@@ -4,7 +4,7 @@ import { buniPlugin } from './buni-loader'
 const db = new Database('routes.sqlite')
 initializeDatabase()
 
-export function renderReactComponent(componentCode: string): string {
+export function compileReact(componentCode: string): Response {
   const transpiler = new Bun.Transpiler({
     loader: 'tsx',
     target: 'browser',
@@ -36,7 +36,9 @@ export function renderReactComponent(componentCode: string): string {
     </html>
   `
 
-  return html
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html' },
+  })
 }
 
 Bun.serve({
@@ -67,10 +69,7 @@ Bun.serve({
       // Accepts POST and GET
       const code =
         req.method === 'POST' ? await req.text() : url.searchParams.get('code')
-      const transpiledCode = renderReactComponent(decodeURIComponent(code))
-      return new Response(transpiledCode, {
-        headers: { 'Content-Type': 'text/html' },
-      })
+      return compileReact(decodeURIComponent(code))
     }
 
     // Route to the corresponding file in the /app directory
@@ -89,24 +88,28 @@ Bun.serve({
         entrypoints: [path],
         outdir: './dist',
         // Reroute eg @/manifold.buni to the url from getRedirect('manifold.buni')
-        // plugins: [buniPlugin],
+        plugins: [buniPlugin],
       })
       console.log('built', built)
 
       const bundled = await built.outputs[0].text()
-      return new Response(renderReactComponent(bundled), {
-        headers: { 'Content-Type': 'text/html' },
-      })
+      return compileReact(bundled)
     }
 
     const reactCounterTsx = `
+    export function Componentz() {
+      const [count, setCount] = React.useState(0)
+      return (
+        <div>
+          <p>Count: {count}</p>
+          <button onClick={() => setCount(count + 1)}>Increment</button>
+        </div>
+      )
+    }
     `
 
     if (path === 'counter') {
-      const html = renderReactComponent(reactCounterTsx)
-      return new Response(html, {
-        headers: { 'Content-Type': 'text/html' },
-      })
+      return compileReact(reactCounterTsx)
     }
 
     // Otherwise, if it's a form submission, add the new shortcut

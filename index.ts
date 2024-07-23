@@ -16,6 +16,10 @@ export function compileReact(componentCode: string): Response {
     },
   })
   const transpiledCode = transpiler.transformSync(componentCode)
+  // Assumes that the first export is the root component
+  const { exports } = transpiler.scan(componentCode)
+  const rootComponent = exports[0]
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -30,7 +34,7 @@ export function compileReact(componentCode: string): Response {
           const createElement = React.createElement
           ${transpiledCode}
           const root = ReactDOM.createRoot(document.getElementById('root'));
-          root.render(React.createElement(Componentz));
+          root.render(React.createElement(${rootComponent}));
         </script>
       </body>
     </html>
@@ -97,7 +101,7 @@ Bun.serve({
     }
 
     const reactCounterTsx = `
-    export function Componentz() {
+    export function Counter() {
       const [count, setCount] = React.useState(0)
       return (
         <div>

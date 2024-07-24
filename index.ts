@@ -50,30 +50,13 @@ Bun.serve({
   async fetch(req) {
     const url = new URL(req.url)
     const path = url.pathname.slice(1)
-    const redirect = getRedirect(path)
-
-    // Redirect if the shortcut already exists
-    if (redirect) {
-      const redirectUrl =
-        redirect.startsWith('http://') || redirect.startsWith('https://')
-          ? redirect
-          : `https://${redirect}`
-      return Response.redirect(redirectUrl, 302)
-    }
-
-    // If going to /db, send the routes.sqlite file
-    if (path === 'db') {
-      return new Response(Bun.file('routes.sqlite'), {
-        headers: { 'Content-Type': 'application/octet-stream' },
-      })
-    }
 
     // At /transpile?code=..., transpile the code and return it
     if (path === 'transpile') {
       // Accepts POST and GET
       const code =
         req.method === 'POST' ? await req.text() : url.searchParams.get('code')
-      return compileReact(decodeURIComponent(code))
+      return compileReact(decodeURIComponent(code ?? ''))
     }
 
     // Route to the corresponding file in the /app directory
@@ -114,6 +97,25 @@ Bun.serve({
 
     if (path === 'counter') {
       return compileReact(reactCounterTsx)
+    }
+
+    // URL shortener logic:
+    const redirect = getRedirect(path)
+
+    // Redirect if the shortcut already exists
+    if (redirect) {
+      const redirectUrl =
+        redirect.startsWith('http://') || redirect.startsWith('https://')
+          ? redirect
+          : `https://${redirect}`
+      return Response.redirect(redirectUrl, 302)
+    }
+
+    // If going to /db, send the routes.sqlite file
+    if (path === 'db') {
+      return new Response(Bun.file('routes.sqlite'), {
+        headers: { 'Content-Type': 'application/octet-stream' },
+      })
     }
 
     // Otherwise, if it's a form submission, add the new shortcut

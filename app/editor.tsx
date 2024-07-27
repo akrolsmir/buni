@@ -1,13 +1,25 @@
+import { Editor as MonacoEditor } from '@monaco-editor/react'
+import React from 'react'
+
 const TO_RENDER = `
-function Componentz() {
-  return <h1 className="text-3xl text-blue-400">Hello World</h1>
+import { useState } from 'react'
+export default function Componentz() {
+  const [count, setCount] = useState(0)
+  return (
+    <div>
+      <h1 className="text-3xl text-blue-400">
+        Hello World
+      </h1>
+      <button onClick={() => setCount(count + 1)}>
+        counting {count}
+      </button>
+    </div>
+  )
 }
 `
-// TODO: make the above work instead so we can properly prompt Claude to generate components
-// const TO_RENDER = `<h1 className="text-3xl text-blue-400">Hello World</h1>`
 
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
-export function Componentz() {
+export default function Editor() {
   const [code, setCode] = React.useState(TO_RENDER)
   const [transpiled, setTranspiled] = React.useState('')
 
@@ -35,10 +47,16 @@ export function Componentz() {
       </div>
       <div className="w-1/2">
         Code
-        <textarea
-          className="w-full h-screen border border-gray-300 rounded-md p-2"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
+        {/* TODO: Fix red underlines in JSX */}
+        <MonacoEditor
+          height="100vh"
+          defaultLanguage="typescript"
+          defaultValue={code}
+          onChange={(value) => setCode(value || '')}
+          options={{
+            minimap: { enabled: false },
+            fontSize: 14,
+          }}
         />
       </div>
     </div>

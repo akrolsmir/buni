@@ -4,38 +4,25 @@ import { buniPlugin } from './buni-loader'
 const db = new Database('routes.sqlite')
 initializeDatabase()
 
-export function compileReact(componentCode: string): Response {
-  const transpiler = new Bun.Transpiler({
-    loader: 'tsx',
-    target: 'browser',
-    tsconfig: {
-      compilerOptions: {
-        // This uses createElement instead of jsxDEV
-        jsx: 'react',
-      },
-    },
+// Build the complete HTML for a given snippet of React code
+export async function compileReact(componentCode: string) {
+  // Output component code to /dist/App.tsx, where main.tsx imports it
+  Bun.write('./dist/App.tsx', componentCode)
+  const built = await Bun.build({
+    entrypoints: ['./app/main.tsx'],
+    outdir: './dist',
   })
-  const transpiledCode = transpiler.transformSync(componentCode)
-  // Assumes that the first export is the root component
-  const { exports } = transpiler.scan(componentCode)
-  const rootComponent = exports[0]
+  const bundled = await built.outputs[0].text()
 
   const html = `
     <!DOCTYPE html>
     <html>
       <head>
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
       </head>
       <body>
         <div id="root"></div>
-        <script type="module">
-          const createElement = React.createElement
-          ${transpiledCode}
-          const root = ReactDOM.createRoot(document.getElementById('root'));
-          root.render(React.createElement(${rootComponent}));
-        </script>
+        <script type="module">${bundled}</script>
       </body>
     </html>
   `
@@ -67,25 +54,15 @@ Bun.serve({
       })
       const match = router.match(url.pathname)
       const path = match?.filePath ?? ''
-      console.log('path', path)
 
-      // Works on first access, but not on reload??
-      // Is there some kind of caching thing going on?
-      const built = await Bun.build({
-        entrypoints: [path],
-        outdir: './dist',
-        // Reroute eg @/manifold.buni to the url from getRedirect('manifold.buni')
-        plugins: [buniPlugin],
-      })
-      console.log('built', built)
-
-      const bundled = await built.outputs[0].text()
-      return compileReact(bundled)
+      const source = await Bun.file(path).text()
+      return compileReact(source)
     }
 
     const reactCounterTsx = `
-    export function Counter() {
-      const [count, setCount] = React.useState(0)
+    import { useState } from 'react'
+    export default function Counter() {
+      const [count, setCount] = useState(0)
       return (
         <div>
           <p>Count: {count}</p>

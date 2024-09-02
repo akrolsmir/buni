@@ -1,7 +1,5 @@
 import { Database } from 'bun:sqlite'
-import { buniPlugin } from './buni-loader'
-import { Glob } from 'bun'
-import { writeToVolume, readFromVolume, listVolume } from './volumes'
+import { writeToVolume, listVolume } from './src/volumes'
 
 const db = new Database('routes.sqlite')
 initializeDatabase()

@@ -14,11 +14,9 @@
     "pull-fly-volume": "mkdir -p ./codegen && fly ssh console -C 'tar -czf /tmp/codegen_backup.tar.gz -C /app/codegen .' && fly sftp get /tmp/codegen_backup.tar.gz ./local_codegen_backup.tar.gz && tar -xzf ./local_codegen_backup.tar.gz -C ./codegen && rm ./local_codegen_backup.tar.gz",
     "push-fly-volume:pack": "tar -czf ./codegen_backup.tar.gz -C ./codegen .",
     "push-fly-volume:upload": "expect -c 'spawn fly ssh sftp shell; expect \"»\"; send \"put ./codegen_backup.tar.gz /tmp/codegen_backup.tar.gz\\r\"; expect \"»\"; send \"\\x03\"; expect eof'",
-    "push-fly-volume:purge": "fly ssh console -C 'find /app/codegen -mindepth 1 -delete'",
-    "push-fly-volume:extract": "fly ssh console -C 'tar -xzf /tmp/codegen_backup.tar.gz -C /app/codegen'",
-    "push-fly-volume:clean-remote": "fly ssh console -C 'rm /tmp/codegen_backup.tar.gz'",
+    "push-fly-volume:update": "expect -c 'spawn fly ssh console; expect \"#\"; send \"find /app/codegen -mindepth 1 -delete\\r\"; expect \"#\"; send \"tar -xzf /tmp/codegen_backup.tar.gz -C /app/codegen\\r\"; expect \"#\"; send \"rm /tmp/codegen_backup.tar.gz\\r\"; expect \"#\"; send \"exit\\r\"; expect eof'",
     "push-fly-volume:cleanup": "rm ./codegen_backup.tar.gz",
-    "push-fly-volume": "bun run push-fly-volume:pack && bun run push-fly-volume:upload && bun run push-fly-volume:purge && bun run push-fly-volume:extract && bun run push-fly-volume:clean-remote && bun run push-fly-volume:cleanup"
+    "push-fly-volume": "bun run push-fly-volume:pack && bun run push-fly-volume:upload && bun run push-fly-volume:update && bun run push-fly-volume:cleanup"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",

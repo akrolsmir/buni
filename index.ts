@@ -6,9 +6,21 @@ const db = new Database('routes.sqlite')
 initializeDatabase()
 
 // Build the complete HTML for a given snippet of React code
-export async function compileReact(componentCode: string) {
+export async function compileReact(
+  componentCode: string,
+  props: Record<string, any> = {}
+) {
   // Output component code to /dist/App.tsx, where main.tsx imports it
   Bun.write('./dist/App.tsx', componentCode)
+
+  // If props are provided, then in App.tsx, export them as a named export
+  if (Object.keys(props).length > 0) {
+    Bun.write(
+      './dist/App.tsx',
+      `${componentCode}\nexport const props = ${JSON.stringify(props)}`
+    )
+  }
+
   const built = await Bun.build({
     entrypoints: ['./app/main.tsx'],
     outdir: './dist',
@@ -58,6 +70,20 @@ Bun.serve({
 
       const source = await Bun.file(path).text()
       return compileReact(source)
+    }
+
+    // Use app/editor.tsx to edit the code in the /codegen directory
+    if (path.startsWith('edit/')) {
+      const router = new Bun.FileSystemRouter({
+        style: 'nextjs',
+        dir: './codegen',
+      })
+      const match = router.match(url.pathname.slice(5)) // Remove the leading /edit/
+      const path = match?.filePath ?? ''
+
+      const source = await Bun.file(path).text()
+      const editor = await Bun.file('./app/editor.tsx').text()
+      return compileReact(editor, { initialCode: source })
     }
 
     const reactCounterTsx = `

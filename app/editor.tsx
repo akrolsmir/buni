@@ -19,8 +19,8 @@ export default function Componentz() {
 `
 
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
-export default function Editor() {
-  const [code, setCode] = React.useState(TO_RENDER)
+export default function Editor(props: { initialCode?: string }) {
+  const [code, setCode] = React.useState(props.initialCode ?? TO_RENDER)
   const [transpiled, setTranspiled] = React.useState('')
 
   // Use the /transpile service to transpile this.

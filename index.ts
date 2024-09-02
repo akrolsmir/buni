@@ -1,5 +1,7 @@
 import { Database } from 'bun:sqlite'
 import { buniPlugin } from './buni-loader'
+import { Glob } from 'bun'
+import { writeToVolume, readFromVolume, listVolume } from './volumes'
 
 const db = new Database('routes.sqlite')
 initializeDatabase()
@@ -37,6 +39,19 @@ Bun.serve({
   async fetch(req) {
     const url = new URL(req.url)
     const path = url.pathname.slice(1)
+
+    // Copy over code from /app/counter.tsx to /app/components/counter.tsx
+    const counterText = await Bun.file('./app/counter.tsx').text()
+    // append current time in HH:MM:SS to the filename in 24h format
+    const timestamp = new Date().toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+    await writeToVolume(`counter-${timestamp}.tsx`, counterText)
+    // List all files in /app/components via Bun's glob
+    const files = await listVolume()
+    console.log('Files found', files)
 
     // At /transpile?code=..., transpile the code and return it
     if (path === 'transpile') {
@@ -133,6 +148,10 @@ Bun.serve({
       <h2>Existing Routes</h2>
       <ul>
         ${routesList}
+      </ul>
+      <h2>Files in /app/codegen</h2>
+      <ul>
+        ${files.map((file) => `<li>${file}</li>`).join('')}
       </ul>
     </body>
     `

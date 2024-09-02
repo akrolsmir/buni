@@ -10,7 +10,8 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "dev": "bun --watch index.ts"
+    "dev": "bun --watch index.ts",
+    "sync-fly-volume": "fly ssh console -C 'tar -czf /tmp/codegen_backup.tar.gz -C /app/codegen .' && fly sftp get /tmp/codegen_backup.tar.gz ./local_codegen_backup.tar.gz && tar -xzf ./local_codegen_backup.tar.gz -C ./local_codegen && rm ./local_codegen_backup.tar.gz"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",

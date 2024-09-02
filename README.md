@@ -49,6 +49,7 @@ bun dev
 ### 2024-07-20 Learnings on hosting
 
 - Fly has Volumes for local persistent storage and LiteFS for distributing SQLite
+  - To use the push/pull commands, sometimes need to bring up app by going to https://buni.fly.dev/; otherwise the app gets stopped for some reason?
 - Render also has [persistent disks](https://docs.render.com/disks#magic-wormhole)
 
 ### 2024-07-22 Devlog

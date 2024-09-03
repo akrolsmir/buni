@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { writeToVolume } from './volumes'
 
 const anthropic = new Anthropic()
 
@@ -79,6 +80,6 @@ export async function generateCode(request: string) {
 
   // Save code to the file, and return the filename
   const filename = requestToFilename(request)
-  await Bun.write(`./codegen/${filename}`, code)
+  await writeToVolume(filename, code)
   return filename
 }

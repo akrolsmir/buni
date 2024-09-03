@@ -1,5 +1,5 @@
 import { Database } from 'bun:sqlite'
-import { writeToVolume, listVolume } from './src/volumes'
+import { writeToVolume, listVolume, readFromVolume } from './src/volumes'
 import { generateCode, testClaude } from './src/claude'
 
 const db = new Database('routes.sqlite')
@@ -86,11 +86,9 @@ Bun.serve({
     // Use app/editor.tsx to edit the code in the /codegen directory
     if (path.startsWith('edit/')) {
       const filename = path.slice(5) + '.tsx'
-      const filePath = `./codegen/${filename}`
-
       let source
       try {
-        source = await Bun.file(filePath).text()
+        source = await readFromVolume(filename)
       } catch (error) {
         // If the file is not found, return a 404 response
         return new Response('File not found', { status: 404 })

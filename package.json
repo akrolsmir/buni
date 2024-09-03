@@ -2,6 +2,13 @@
   "name": "buni",
   "module": "index.ts",
   "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.1",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@uiw/react-codemirror": "^4.23.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.8",
     "@types/bun": "latest"
@@ -17,11 +24,5 @@
     "push-fly-volume:update": "expect -c 'spawn fly ssh console; expect \"#\"; send \"find /app/codegen -mindepth 1 -delete\\r\"; expect \"#\"; send \"tar -xzf /tmp/codegen_backup.tar.gz -C /app/codegen\\r\"; expect \"#\"; send \"rm /tmp/codegen_backup.tar.gz\\r\"; expect \"#\"; send \"exit\\r\"; expect eof'",
     "push-fly-volume:cleanup": "rm ./codegen_backup.tar.gz",
     "push-fly-volume": "bun run push-fly-volume:pack && bun run push-fly-volume:upload && bun run push-fly-volume:update && bun run push-fly-volume:cleanup"
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.27.1",
-    "@monaco-editor/react": "^4.6.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
   }
 }

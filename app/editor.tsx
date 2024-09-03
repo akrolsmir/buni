@@ -1,4 +1,5 @@
-import { Editor as MonacoEditor } from '@monaco-editor/react'
+import ReactCodeMirror from '@uiw/react-codemirror'
+import { javascript } from '@codemirror/lang-javascript'
 import React from 'react'
 
 const TO_RENDER = `
@@ -47,16 +48,16 @@ export default function Editor(props: { initialCode?: string }) {
       </div>
       <div className="w-1/2">
         Code
-        {/* TODO: Fix red underlines in JSX */}
-        <MonacoEditor
-          height="100vh"
-          defaultLanguage="typescript"
-          defaultValue={code}
+        {/* Note: ReactCodeMirror adds ~1mb to the bundle */}
+        <ReactCodeMirror
+          value={code}
           onChange={(value) => setCode(value || '')}
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-          }}
+          extensions={[
+            javascript({
+              jsx: true,
+              typescript: true,
+            }),
+          ]}
         />
       </div>
     </div>

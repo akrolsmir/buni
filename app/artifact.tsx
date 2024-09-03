@@ -72,20 +72,22 @@ export default function Artifact() {
         </button>
       </div>
       <div className="flex flex-col gap-1 w-full max-w-md p-6">
-        {files.map((file) => (
-          <div
-            key={file}
-            className="overflow-hidden text-ellipsis whitespace-nowrap"
-          >
-            <a
-              className="hover:underline text-sm text-gray-500"
-              href={`/edit/${file.replace('.tsx', '')}`}
-              title={file.replace('.tsx', '')}
+        {files
+          .sort((a, b) => a.localeCompare(b))
+          .map((file) => (
+            <div
+              key={file}
+              className="overflow-hidden text-ellipsis whitespace-nowrap"
             >
-              {file.replace('.tsx', '')}
-            </a>
-          </div>
-        ))}
+              <a
+                className="hover:underline text-sm text-gray-500"
+                href={`/edit/${file.replace('.tsx', '')}`}
+                title={file.replace('.tsx', '')}
+              >
+                {file.replace('.tsx', '')}
+              </a>
+            </div>
+          ))}
       </div>
     </div>
   )

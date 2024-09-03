@@ -14,10 +14,10 @@ export async function readFromVolume(filename: string) {
   return await file(path).text()
 }
 
-export async function listVolume() {
+export function listVolume() {
   const glob = new Glob('**/*')
   const files = []
-  for await (const file of glob.scan(VOLUME_PATH)) {
+  for (const file of glob.scanSync(VOLUME_PATH)) {
     files.push(file)
   }
   return files

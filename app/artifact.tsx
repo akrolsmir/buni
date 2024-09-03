@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { listVolume } from '../src/volumes'
 
 // Centered single input which takes in a prompt like "a todo list"
 // On submit, generates an artifact using Claude Sonnet
@@ -21,9 +22,16 @@ export default function Artifact() {
       .finally(() => setGenerating(false))
   }
 
+  const [files, setFiles] = useState<string[]>([])
+  useEffect(() => {
+    fetch('/ls')
+      .then((res) => res.json())
+      .then((data) => setFiles(data as string[]))
+  }, [])
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
+    <div className="flex flex-col items-center justify-center min-h-screen h-full w-full bg-gray-100">
+      <div className="w-full max-w-md p-6 rounded-lg shadow-md">
         <input
           type="text"
           onKeyDown={(e) => e.key === 'Enter' && generateArtifact()}
@@ -62,6 +70,22 @@ export default function Artifact() {
             'Generate'
           )}
         </button>
+      </div>
+      <div className="flex flex-col gap-1 w-full max-w-md p-6">
+        {files.map((file) => (
+          <div
+            key={file}
+            className="overflow-hidden text-ellipsis whitespace-nowrap"
+          >
+            <a
+              className="hover:underline text-sm text-gray-500"
+              href={`/edit/${file.replace('.tsx', '')}`}
+              title={file.replace('.tsx', '')}
+            >
+              {file.replace('.tsx', '')}
+            </a>
+          </div>
+        ))}
       </div>
     </div>
   )

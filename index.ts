@@ -25,6 +25,10 @@ export async function compileReact(
     entrypoints: ['./app/main.tsx'],
     outdir: './dist',
   })
+  if (!built.success) {
+    console.error(built.logs)
+    throw new Error('Failed to build: ' + built.logs)
+  }
   const bundled = await built.outputs[0].text()
 
   const html = `
@@ -71,6 +75,12 @@ Bun.serve({
           headers: { 'Content-Type': 'application/json' },
         }
       )
+    }
+
+    if (path === 'ls') {
+      return new Response(JSON.stringify(listVolume()), {
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
 
     // Route to the corresponding file in the /app directory

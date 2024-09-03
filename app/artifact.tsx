@@ -26,6 +26,8 @@ export default function Artifact() {
       <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
         <input
           type="text"
+          onKeyDown={(e) => e.key === 'Enter' && generateArtifact()}
+          autoFocus
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           className="w-full px-4 py-2 mb-4 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

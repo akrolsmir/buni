@@ -21,7 +21,7 @@ bun dev
 
 compileReact takes in code as a string, and generates a single file HTML component for it.
 
-### TODO
+## TODO
 
 - [x] Set up functional editor page
 - [x] For resolving files, maybe overwrite with a plugin?
@@ -47,6 +47,8 @@ compileReact takes in code as a string, and generates a single file HTML compone
     - Or: Conceptualize each Claude output as mini NPM packages?
       - See https://github.com/wobsoriano/bun-lib-starter for the format of an actual NPM package
   - External API calls?
+
+## Dev notes
 
 ### 2024-07-20 Learnings on hosting
 

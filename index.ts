@@ -59,6 +59,17 @@ Bun.serve({
       return compileReact(decodeURIComponent(code ?? ''))
     }
 
+    if (path === 'generate') {
+      const prompt = await req.text()
+      const filename = await generateCode(prompt)
+      return new Response(
+        JSON.stringify({ url: `/edit/${filename.replace(/\.tsx$/, '')}` }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
     // Route to the corresponding file in the /app directory
     if (path.startsWith('app/')) {
       const router = new Bun.FileSystemRouter({
@@ -74,14 +85,17 @@ Bun.serve({
 
     // Use app/editor.tsx to edit the code in the /codegen directory
     if (path.startsWith('edit/')) {
-      const router = new Bun.FileSystemRouter({
-        style: 'nextjs',
-        dir: './codegen',
-      })
-      const match = router.match(url.pathname.slice(5)) // Remove the leading /edit/
-      const path = match?.filePath ?? ''
+      const filename = path.slice(5) + '.tsx'
+      const filePath = `./codegen/${filename}`
 
-      const source = await Bun.file(path).text()
+      let source
+      try {
+        source = await Bun.file(filePath).text()
+      } catch (error) {
+        // If the file is not found, return a 404 response
+        return new Response('File not found', { status: 404 })
+      }
+
       const editor = await Bun.file('./app/editor.tsx').text()
       return compileReact(editor, { initialCode: source })
     }

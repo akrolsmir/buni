@@ -19,6 +19,7 @@
     "push-fly-volume": "bun run push-fly-volume:pack && bun run push-fly-volume:upload && bun run push-fly-volume:update && bun run push-fly-volume:cleanup"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.1",
     "@monaco-editor/react": "^4.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

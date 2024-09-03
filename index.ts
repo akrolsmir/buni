@@ -35,7 +35,10 @@ export async function compileReact(
       </head>
       <body>
         <div id="root"></div>
-        <script type="module">${bundled}</script>
+        <script type="module">${bundled.replace(
+          /<\/script>/g,
+          '<\\/script>'
+        )}</script>
       </body>
     </html>
   `

@@ -61,7 +61,7 @@ export function requestToFilename(request: string) {
 export async function generateCode(request: string) {
   const msg = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20240620',
-    max_tokens: 1000,
+    max_tokens: 5000,
     temperature: 0,
     messages: [
       {

@@ -111,6 +111,9 @@ Bun.serve({
       return compileReact(editor, { initialCode: source })
     }
 
+    // Use app/artifact as the homepage for now:
+    return compileReact(await Bun.file('./app/artifact.tsx').text())
+
     // URL shortener logic:
     const redirect = getRedirect(path)
 

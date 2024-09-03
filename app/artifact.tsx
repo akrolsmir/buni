@@ -67,7 +67,7 @@ export default function Artifact() {
               Generating...
             </>
           ) : (
-            'Generate'
+            'Generate app'
           )}
         </button>
       </div>

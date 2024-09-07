@@ -41,24 +41,25 @@ export default function Editor(props: { initialCode?: string }) {
   }, [code])
 
   return (
-    <div className="flex flex-row p-8">
+    <div className="flex flex-row gap-2">
       <div className="w-1/2">
-        Output
         <iframe srcDoc={transpiled} className="w-full h-screen" />
       </div>
-      <div className="w-1/2">
-        Code
-        {/* Note: ReactCodeMirror adds ~1mb to the bundle */}
-        <ReactCodeMirror
-          value={code}
-          onChange={(value) => setCode(value || '')}
-          extensions={[
-            javascript({
-              jsx: true,
-              typescript: true,
-            }),
-          ]}
-        />
+      <div className="w-1/2 overflow-auto h-screen">
+        <div className="h-full">
+          {/* Note: ReactCodeMirror adds ~1mb to the bundle */}
+          <ReactCodeMirror
+            value={code}
+            onChange={(value) => setCode(value || '')}
+            extensions={[
+              javascript({
+                jsx: true,
+                typescript: true,
+              }),
+            ]}
+            height="100%"
+          />
+        </div>
       </div>
     </div>
   )

@@ -15,6 +15,11 @@ export function applyDiff(code: string, diff: string) {
   let j = 0 // diffs index
   // If the line exists, move i to it and add lines in between to result
   function seekAndApply() {
+    // Noop if diff line is an insertion
+    if (diffs[j].startsWith('+')) {
+      return
+    }
+
     // Given the current diff line j, find the next matching line or -1
     const newI = lines.findIndex(
       (line, index) => index >= i && line === diffs[j].slice(1)

@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
-import { writeToVolume, listVolume, readFromVolume } from './src/volumes'
-import { generateCode, testClaude } from './src/claude'
+import { listVolume, readFromVolume } from './src/volumes'
+import { generateCode, modifyCode } from './src/claude'
 
 const db = new Database('routes.sqlite')
 initializeDatabase()
@@ -75,6 +75,17 @@ Bun.serve({
           headers: { 'Content-Type': 'application/json' },
         }
       )
+    }
+
+    if (path === 'modify') {
+      const { code, modify } = (await req.json()) as {
+        code: string
+        modify: string
+      }
+      const modifiedCode = await modifyCode(code, modify)
+      return new Response(modifiedCode, {
+        headers: { 'Content-Type': 'text/plain' },
+      })
     }
 
     if (path === 'ls') {

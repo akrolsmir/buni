@@ -1,29 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { writeToVolume } from './volumes'
+import { applyDiff } from './code'
 
 const anthropic = new Anthropic()
-
-export async function testClaude() {
-  const msg = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20240620',
-    max_tokens: 1000,
-    temperature: 0,
-    system: 'Respond only with short poems.',
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: 'Why is the ocean salty?',
-          },
-        ],
-      },
-    ],
-  })
-  console.log(msg)
-  return msg
-}
 
 const REACT_GEN_PROMPT = `
 You are tasked with generating a single React component based on a user's request in <request>. Your goal is to create a functional, well-structured component that meets the user's requirements.
@@ -45,7 +24,7 @@ Here is the user's request:
 {{REQUEST}}
 </request>
 
-Based on this request, generate the React component as described above. Remember to start with "export default function Component() {" and use TSX syntax with Tailwind CSS for styling.
+Based on this request, gnerate the React component as described above. Remember to start with "export default function Component() {" and use TSX syntax with Tailwind CSS for styling.
 `
 
 export function requestToFilename(request: string) {
@@ -82,4 +61,79 @@ export async function generateCode(request: string) {
   const filename = requestToFilename(request)
   await writeToVolume(filename, code)
   return filename
+}
+
+const MODIFY_PROMPT = `
+Analyze the existing React code and user's prompt for modification. Create a code diff to implement the requested change.
+
+<existing_code>
+{{EXISTING_CODE}}
+</existing_code>
+
+<user_prompt>
+{{USER_PROMPT}}
+</user_prompt>
+
+Consider which parts of the code need to be modified, added, or removed, and any potential side effects.
+
+Provide your code diff inside <code_diff> tags using the following format:
+- Lines to remove: prefixed with -
+- Lines to add: prefixed with +
+- Context lines: prefixed with space
+
+Example:
+<code_diff>
+ import React from 'react';
+ 
+-function MyComponent() {
++function MyComponent(props) {
+   return (
+     <div>
+-      <h1>Hello, World!</h1>
++      <h1>Hello, {props.name}!</h1>
+     </div>
+   );
+ }
+</code_diff>
+
+Rules:
+1. Include only the necessary changes and context lines in your diff.
+2. Be concise; avoid context lines where possible, truncating context in between edits with "...".
+3. Do not include the line numbers to change.
+4. Do not write anything after the <code_diff>.
+
+If no changes are needed or the modification is not possible, explain why instead of providing a diff.
+
+Consider React best practices and choose the most straightforward approach for ambiguous requests.`
+
+export async function modifyCode(code: string, request: string) {
+  const start = Date.now()
+  const prompt = MODIFY_PROMPT.replace('{{EXISTING_CODE}}', code).replace(
+    '{{USER_PROMPT}}',
+    request
+  )
+  const msg = await anthropic.messages.create({
+    model: 'claude-3-5-sonnet-20240620',
+    max_tokens: 2000,
+    temperature: 0,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: prompt,
+          },
+        ],
+      },
+    ],
+  })
+  const text = (msg.content[0] as { text: string }).text
+  const diffStart = text.indexOf('<code_diff>\n') + '<code_diff>\n'.length
+  const diffEnd = text.lastIndexOf('</code_diff>')
+  const diff =
+    diffStart !== -1 && diffEnd !== -1 ? text.slice(diffStart, diffEnd) : ''
+  console.log('MODIFY CODE took', Date.now() - start, 'ms', 'text was', text)
+  // console.log('diff', diff)
+  return applyDiff(code, diff)
 }

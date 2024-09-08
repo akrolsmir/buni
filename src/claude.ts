@@ -100,7 +100,8 @@ Rules:
 1. Include only the necessary changes and context lines in your diff.
 2. Be concise; avoid context lines where possible, truncating context in between edits with "...".
 3. Do not include the line numbers to change.
-4. Do not write anything after the <code_diff>.
+4. Preserve the original indentation of the code within <code_diff>.
+5. Do not write anything after the <code_diff>.
 
 If no changes are needed or the modification is not possible, explain why instead of providing a diff.
 

@@ -24,7 +24,7 @@ Here is the user's request:
 {{REQUEST}}
 </request>
 
-Based on this request, gnerate the React component as described above. Remember to start with "export default function Component() {" and use TSX syntax with Tailwind CSS for styling.
+Based on this request, generate the React component as described above. Remember to start with "export default function Component() {" and use TSX syntax with Tailwind CSS for styling.
 `
 
 export function requestToFilename(request: string) {
@@ -54,13 +54,35 @@ export async function generateCode(request: string) {
       },
     ],
   })
-  // console.log(msg)
   const code = (msg.content[0] as { text: string }).text
 
   // Save code to the file, and return the filename
   const filename = requestToFilename(request)
   await writeToVolume(filename, code)
   return filename
+}
+
+// Streaming version of generate; instead of writing to a file, stream the code
+export function generateCodeStream(request: string) {
+  const stream = anthropic.messages.create({
+    model: 'claude-3-5-sonnet-20240620',
+    // model: 'claude-3-haiku-20240307', // Faster, but worse
+    max_tokens: 4096,
+    temperature: 0,
+    stream: true,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: REACT_GEN_PROMPT.replace('{{REQUEST}}', request),
+          },
+        ],
+      },
+    ],
+  })
+  return stream
 }
 
 const MODIFY_PROMPT = `

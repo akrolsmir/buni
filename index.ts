@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
-import { listVolume, readFromVolume } from './src/volumes'
-import { generateCode, modifyCode } from './src/claude'
+import { listVolume, readFromVolume, writeToVolume } from './src/volumes'
+import { generateCode, generateCodeStream, modifyCode } from './src/claude'
 
 const db = new Database('routes.sqlite')
 initializeDatabase()
@@ -75,6 +75,37 @@ Bun.serve({
           headers: { 'Content-Type': 'application/json' },
         }
       )
+    }
+
+    // Streaming version of generate
+    if (path === 'generate-stream') {
+      const prompt = await req.text()
+      const stream = await generateCodeStream(prompt)
+
+      return new Response(
+        // @ts-ignore - bun supports generators in Response, but TS doesn't know
+        (async function* () {
+          for await (const event of stream) {
+            if (event.type === 'content_block_delta') {
+              if (event.delta.type === 'text_delta') {
+                yield event.delta.text
+              }
+            }
+          }
+        })(),
+        {
+          headers: { 'Content-Type': 'text/plain' },
+        }
+      )
+    }
+
+    if (path === 'write') {
+      const { filename, content } = (await req.json()) as {
+        filename: string
+        content: string
+      }
+      await writeToVolume(filename, content)
+      return new Response(null, { status: 200 })
     }
 
     if (path === 'modify') {

@@ -85,6 +85,8 @@ export function generateCodeStream(request: string) {
   return stream
 }
 
+// TODO: Diffs can be buggy (eg wrong indentation); consider just having
+// Claude rewrite the whole file (or GPT-4o, which is twice as fast)
 const MODIFY_PROMPT = `
 Analyze the existing React code and user's prompt for modification. Create a code diff to implement the requested change.
 
@@ -152,11 +154,68 @@ export async function modifyCode(code: string, request: string) {
     ],
   })
   const text = (msg.content[0] as { text: string }).text
-  const diffStart = text.indexOf('<code_diff>\n') + '<code_diff>\n'.length
-  const diffEnd = text.lastIndexOf('</code_diff>')
-  const diff =
-    diffStart !== -1 && diffEnd !== -1 ? text.slice(diffStart, diffEnd) : ''
+  const diff = extractBlock(text, 'code_diff')
   console.log('MODIFY CODE took', Date.now() - start, 'ms', 'text was', text)
-  // console.log('diff', diff)
-  return applyDiff(code, diff)
+  return await rewriteCode(code, diff)
+}
+
+// Extract a block of text from between <tag> and </tag>
+function extractBlock(text: string, tag: string) {
+  const start = text.indexOf(`<${tag}>`) + `<${tag}>`.length
+  const end = text.indexOf(`</${tag}>`)
+  return start !== -1 && end !== -1 ? text.slice(start, end) : ''
+}
+
+const REWRITE_PROMPT = `
+You are tasked with applying a code diff to an original code file. Here's the original code file:
+
+<original_code>
+{{ORIGINAL_CODE}}
+</original_code>
+
+And here's the code diff to apply:
+
+<code_diff>
+{{CODE_DIFF}}
+</code_diff>
+
+Your task is to apply this diff to the original code and output the resulting file. Here's how to interpret the diff:
+- Lines starting with '+' are additions
+- Lines starting with '-' are deletions
+- Lines starting with a space are context lines (unchanged)
+
+To apply the diff:
+1. Go through the diff line by line
+2. For lines starting with '+', add them to the output
+3. For lines starting with '-', remove the corresponding line from the original code
+4. For lines starting with a space, keep the corresponding line from the original code unchanged
+
+After applying all changes, output the resulting code file. Make sure to preserve the original formatting, including indentation and blank lines, except where the diff specifies changes.
+
+Provide your output within <result> tags. The output should be the entire resulting code file after applying the diff, not just the changed lines.
+`
+
+export async function rewriteCode(code: string, diff: string) {
+  const prompt = REWRITE_PROMPT.replace('{{ORIGINAL_CODE}}', code).replace(
+    '{{CODE_DIFF}}',
+    diff
+  )
+  const msg = await anthropic.messages.create({
+    model: 'claude-3-haiku-20240307',
+    max_tokens: 4096,
+    temperature: 0,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: prompt,
+          },
+        ],
+      },
+    ],
+  })
+  const text = (msg.content[0] as { text: string }).text
+  return extractBlock(text, 'result')
 }

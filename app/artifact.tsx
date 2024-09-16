@@ -28,35 +28,35 @@ export default function Artifact() {
       .finally(() => setGenerating(false))
   }
 
-  // TODO: Rewrite with async
-  function generateArtifactStream() {
+  async function generateArtifactStream() {
     setGenerating(true)
     // Streaming API, so continually update the state with the new text
-    fetch('/generate-stream', {
+    const res = await fetch('/generate-stream', {
       method: 'POST',
       body: prompt,
-    }).then(async (res) => {
-      const decoder = new TextDecoder()
-      if (!res.body) return
-      setGenerated('')
-      let content = ''
-      for await (const chunk of res.body) {
-        content += decoder.decode(chunk)
-        setGenerated(content)
-      }
-
-      // Write the generated code to a file
-      const filename = requestToFilename(prompt)
-      await fetch('/write', {
-        method: 'POST',
-        body: JSON.stringify({
-          filename,
-          content: content,
-        }),
-      })
-      window.location.href = `/edit/${filename.replace('.tsx', '')}`
-      setGenerating(false)
     })
+
+    const decoder = new TextDecoder()
+    if (!res.body) return
+    setGenerated('')
+    let content = ''
+    for await (const chunk of res.body) {
+      content += decoder.decode(chunk)
+      setGenerated(content)
+    }
+
+    // Write the generated code to a file
+    const filename = requestToFilename(prompt)
+    await fetch('/write', {
+      method: 'POST',
+      body: JSON.stringify({
+        filename,
+        content: content,
+      }),
+    })
+
+    window.location.href = `/edit/${filename.replace('.tsx', '')}`
+    setGenerating(false)
   }
 
   const [files, setFiles] = useState<string[]>([])

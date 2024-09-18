@@ -173,6 +173,34 @@ Bun.serve({
       return compileReact(editor, { initialCode: source })
     }
 
+    // Serve /codegen/blah.tsx files as ES modules, so you can:
+    // `import Component from "http://localhost:3000/esm/filename.tsx"`
+    // TODO: currently expects an extension, but could guess at .ts/tsx/js/jsx
+    if (path.startsWith('esm/')) {
+      const filename = path.slice(4)
+      const contents = await readFromVolume(filename)
+
+      let js = contents
+      // Detect file extension: if .ts(x), transpile to js via Bun
+      const extension = path.split('.').pop()
+      if (extension === 'tsx' || extension === 'ts') {
+        const transpiler = new Bun.Transpiler({
+          loader: extension,
+        })
+        js = transpiler.transformSync(contents)
+        // Hack: append jsxDev import from esm.sh
+        js = `import { jsxDEV } from 'react/jsx-dev-runtime';\n${js}`
+      }
+      console.log('transpiled', filename, 'to', js)
+      return new Response(js, {
+        headers: { 'Content-Type': 'application/javascript' },
+      })
+    }
+
+    if (path === 'favicon.ico') {
+      return new Response(null, { status: 404 })
+    }
+
     // Use app/artifact as the homepage for now:
     return compileReact(await Bun.file('./app/artifact.tsx').text())
 

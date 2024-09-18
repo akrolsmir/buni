@@ -10,6 +10,7 @@ export async function compileReact(
   componentCode: string,
   props: Record<string, any> = {}
 ) {
+  // console.log('compileReact', componentCode.slice(0, 400))
   // Output component code to /dist/App.tsx, where main.tsx imports it
   Bun.write('./dist/App.tsx', componentCode)
 
@@ -24,6 +25,8 @@ export async function compileReact(
   const built = await Bun.build({
     entrypoints: ['./app/main.tsx'],
     outdir: './dist',
+    // Don't bundle stuff we importmap from esm.sh
+    external: ['react', 'react-dom', '@uiw/react-textarea-code-editor'],
   })
   if (!built.success) {
     console.error(built.logs)
@@ -31,11 +34,25 @@ export async function compileReact(
   }
   const bundled = await built.outputs[0].text()
 
+  // TODO: generate importmap and css dynamically?
   const html = `
     <!DOCTYPE html>
     <html>
       <head>
         <script src="https://cdn.tailwindcss.com"></script>
+        <script type="importmap">
+          {
+            "imports": {
+              "react": "https://esm.sh/react@18.3.1",
+              "react/jsx-dev-runtime": "https://esm.sh/react@18.3.1/jsx-dev-runtime",
+              "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+              "react-dom": "https://esm.sh/react-dom@18.3.1",
+              "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+              "@uiw/react-textarea-code-editor": "https://esm.sh/@uiw/react-textarea-code-editor@3.0.2?external=react,react-dom"
+            }
+          }
+        </script>
+        <link rel="stylesheet" href="https://esm.sh/@uiw/react-textarea-code-editor/dist.css" />
       </head>
       <body>
         <div id="root"></div>
@@ -46,6 +63,9 @@ export async function compileReact(
       </body>
     </html>
   `
+
+  // For debugging: write the HTML to a file with a timestamp
+  // Bun.write(`./dist/test-${Date.now()}.html`, html)
 
   return new Response(html, {
     headers: { 'Content-Type': 'text/html' },

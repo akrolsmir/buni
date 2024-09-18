@@ -51,7 +51,8 @@ compileReact takes in code as a string, and generates a single file HTML compone
 - Browse through code?
 - Mobile view?
 - Auth for users
-  - Social: really good database
+  - AuthJS?
+- Social: really good database
 - API/LLM capabilities
 
 ### Misc TODOs

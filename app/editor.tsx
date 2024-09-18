@@ -1,6 +1,5 @@
-import ReactCodeMirror from '@uiw/react-codemirror'
-import { javascript } from '@codemirror/lang-javascript'
 import React from 'react'
+import CodeEditor from '@uiw/react-textarea-code-editor'
 
 const TO_RENDER = `
 import { useState } from 'react'
@@ -83,17 +82,17 @@ export default function Editor(props: { initialCode?: string }) {
               {modifying ? 'Modifying...' : 'Modify'}
             </button>
           </div>
-          {/* Note: ReactCodeMirror adds ~1mb to the bundle */}
-          <ReactCodeMirror
+          <CodeEditor
             value={code}
-            onChange={(value) => setCode(value || '')}
-            extensions={[
-              javascript({
-                jsx: true,
-                typescript: true,
-              }),
-            ]}
-            height="100%"
+            language="js"
+            placeholder="Please enter TSX code."
+            onChange={(event) => setCode(event.target.value)}
+            padding={15}
+            style={{
+              backgroundColor: '#f5f5f5',
+              fontFamily:
+                'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+            }}
           />
         </div>
       </div>

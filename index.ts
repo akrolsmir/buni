@@ -147,14 +147,14 @@ Bun.serve({
 
     // Route to the corresponding file in the /app directory
     if (path.startsWith('app/')) {
-      const router = new Bun.FileSystemRouter({
-        style: 'nextjs',
-        dir: './',
-      })
-      const match = router.match(url.pathname)
-      const path = match?.filePath ?? ''
-
-      const source = await Bun.file(path).text()
+      const filename = path.slice('app/'.length) + '.tsx'
+      let source
+      try {
+        source = await readFromVolume(filename)
+      } catch (error) {
+        // If the file is not found, return a 404 response
+        return new Response('File not found', { status: 404 })
+      }
       return compileReact(source)
     }
 

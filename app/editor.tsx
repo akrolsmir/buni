@@ -65,6 +65,17 @@ export default function Editor(props: { initialCode?: string }) {
     navigator.clipboard.writeText(importText)
     alert(`Copied to clipboard:\n\n${importText}`)
   }
+  async function saveCode() {
+    const filename = window.location.pathname.split('/').pop() + '.tsx'
+    const res = await fetch('/write', {
+      method: 'POST',
+      body: JSON.stringify({ filename, content: code }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    alert(res.ok ? 'Saved' : 'Failed to save')
+  }
 
   return (
     <div className="flex flex-row gap-2">
@@ -89,9 +100,7 @@ export default function Editor(props: { initialCode?: string }) {
             </button>
             <button
               className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={() => {
-                alert('Not implemented')
-              }}
+              onClick={saveCode}
             >
               Save
             </button>

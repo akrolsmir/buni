@@ -54,6 +54,18 @@ export default function Editor(props: { initialCode?: string }) {
       .then((text) => setCode(text))
       .finally(() => setModifying(false))
   }
+
+  const URL = window.location.href as string
+  function openPreview() {
+    window.open(URL.replace('/edit/', '/app/'), '_blank')
+  }
+  function copyExport() {
+    const esmURL = URL.replace('/edit/', '/esm/')
+    const importText = `import Component from "${esmURL}.tsx"`
+    navigator.clipboard.writeText(importText)
+    alert(`Copied to clipboard:\n\n${importText}`)
+  }
+
   return (
     <div className="flex flex-row gap-2">
       <div className="w-1/2">
@@ -61,7 +73,30 @@ export default function Editor(props: { initialCode?: string }) {
       </div>
       <div className="w-1/2 overflow-auto h-screen">
         <div className="h-full">
-          <div className="flex my-4">
+          {/* Horizontal toolbar with links to different sections */}
+          <div className="flex flex-row gap-6 m-1 mb-4">
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={openPreview}
+            >
+              Preview
+            </button>
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={copyExport}
+            >
+              Export
+            </button>
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={() => {
+                alert('Not implemented')
+              }}
+            >
+              Save
+            </button>
+          </div>
+          <div className="flex mr-2 my-2">
             <input
               type="text"
               className="flex-grow px-2 py-1 border rounded-l"
@@ -79,7 +114,7 @@ export default function Editor(props: { initialCode?: string }) {
               onClick={handleModify}
               disabled={modifying}
             >
-              {modifying ? 'Modifying...' : 'Modify'}
+              {modifying ? 'Modifying...' : 'Modify with AI'}
             </button>
           </div>
           <CodeEditor

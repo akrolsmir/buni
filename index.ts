@@ -1,5 +1,10 @@
 import { Database } from 'bun:sqlite'
-import { listVolume, readFromVolume, writeToVolume } from './src/volumes'
+import {
+  dbOnVolume,
+  listVolume,
+  readFromVolume,
+  writeToVolume,
+} from './src/volumes'
 import { generateCode, generateCodeStream, modifyCode } from './src/claude'
 
 const db = new Database('routes.sqlite')
@@ -139,12 +144,6 @@ Bun.serve({
       })
     }
 
-    if (path === 'ls') {
-      return new Response(JSON.stringify(listVolume()), {
-        headers: { 'Content-Type': 'application/json' },
-      })
-    }
-
     // Route to the corresponding file in the /app directory
     if (path.startsWith('app/')) {
       const filename = path.slice('app/'.length) + '.tsx'
@@ -199,6 +198,29 @@ Bun.serve({
 
     if (path === 'favicon.ico') {
       return new Response(null, { status: 404 })
+    }
+
+    // Route DB operations through server for now
+    if (path.startsWith('db/')) {
+      if (path === 'db/run') {
+        const { filename, content } = (await req.json()) as {
+          filename: string
+          content: string
+        }
+        const db = dbOnVolume(filename)
+        db.run(content)
+      }
+      if (path === 'db/query') {
+        const { filename, query } = (await req.json()) as {
+          filename: string
+          query: string
+        }
+        const db = dbOnVolume(filename)
+        const result = db.query(query).all()
+        return new Response(JSON.stringify(result), {
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
     }
 
     // Use app/artifact as the homepage for now:

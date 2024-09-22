@@ -1,4 +1,5 @@
 import { write, file, Glob } from 'bun'
+import { Database } from 'bun:sqlite'
 import { join } from 'path'
 
 const isFlySafe = !!process.env.FLY_IO
@@ -43,4 +44,9 @@ export async function syncFromVolume(localDir: string) {
 
 export function getVolumePath() {
   return VOLUME_PATH
+}
+
+// Get the sqlite db like 'foo/db.sqlite'
+export function dbOnVolume(filename: string) {
+  return new Database(join(VOLUME_PATH, filename))
 }

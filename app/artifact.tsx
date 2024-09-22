@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
+import { createApp, listApps } from '../codegen/buni/db'
 
 // TODO: Actually bootstrap this?
 const DEFAULT_CODE = `// Enter a prompt to get started!
@@ -29,6 +30,12 @@ export default function Artifact() {
 
   async function generateArtifactStream() {
     setGenerating(true)
+    await createApp({
+      creator_id: 'austin',
+      app_name: appName(prompt),
+      description: prompt,
+    })
+
     // Streaming API, so continually update the state with the new text
     const res = await fetch('/generate-stream', {
       method: 'POST',
@@ -45,7 +52,7 @@ export default function Artifact() {
     }
 
     // Write the generated code to a file
-    const filename = requestToFilename(prompt)
+    const filename = appName(prompt) + '/app.tsx'
     await fetch('/write', {
       method: 'POST',
       body: JSON.stringify({
@@ -58,11 +65,9 @@ export default function Artifact() {
     setGenerating(false)
   }
 
-  const [files, setFiles] = useState<string[]>([])
+  const [apps, setApps] = useState<App[]>([])
   useEffect(() => {
-    fetch('/ls')
-      .then((res) => res.json())
-      .then((data) => setFiles(data as string[]))
+    listApps().then(setApps)
   }, [])
 
   return (
@@ -85,48 +90,27 @@ export default function Artifact() {
                 className="w-full px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center"
                 disabled={generating}
               >
-                {generating ? (
-                  <>
-                    <svg
-                      className="animate-spin h-5 w-5 mr-3"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Generating...
-                  </>
-                ) : (
-                  'Generate app'
-                )}
+                {generating ? <Spinner /> : 'Generate app'}
               </button>
             </div>
             <div className="flex flex-col gap-1 w-full max-w-md p-6">
-              {files
-                .sort((a, b) => a.localeCompare(b))
-                .map((file) => (
+              {apps
+                .sort(
+                  (a, b) =>
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+                )
+                .map((app) => (
                   <div
-                    key={file}
+                    key={app.app_id}
                     className="overflow-hidden text-ellipsis whitespace-nowrap"
                   >
                     <a
                       className="hover:underline text-sm text-gray-500"
-                      href={`/edit/${file.replace('.tsx', '')}`}
-                      title={file.replace('.tsx', '')}
+                      href={`/edit/${app.app_name}/app`}
+                      title={app.description}
                     >
-                      {file.replace('.tsx', '')}
+                      {app.description}
                     </a>
                   </div>
                 ))}
@@ -153,11 +137,31 @@ export default function Artifact() {
   )
 }
 
-function requestToFilename(request: string) {
+function Spinner() {
   return (
-    request
-      .toLowerCase()
-      .replace(/\s/g, '-')
-      .replace(/[^a-z0-9-]/g, '') + '.tsx'
+    <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+        fill="none"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
   )
+}
+
+function appName(request: string) {
+  return request
+    .toLowerCase()
+    .replace(/\s/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .slice(0, 80)
 }

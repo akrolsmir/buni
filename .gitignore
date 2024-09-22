@@ -1,4 +1,7 @@
-codegen
+!codegen
+codegen/*
+!codegen/buni/
+
 
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 

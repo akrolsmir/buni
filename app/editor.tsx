@@ -1,26 +1,11 @@
 import React from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
-
-const TO_RENDER = `
-import { useState } from 'react'
-export default function Componentz() {
-  const [count, setCount] = useState(0)
-  return (
-    <div>
-      <h1 className="text-3xl text-blue-400">
-        Hello World
-      </h1>
-      <button onClick={() => setCount(count + 1)}>
-        counting {count}
-      </button>
-    </div>
-  )
-}
-`
+// TODO: will this compile properly on the server?
+import { initDB } from '../codegen/buni/db'
 
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
 export default function Editor(props: { initialCode?: string }) {
-  const [code, setCode] = React.useState(props.initialCode ?? TO_RENDER)
+  const [code, setCode] = React.useState(props.initialCode ?? '')
   const [transpiled, setTranspiled] = React.useState('')
 
   // Use the /transpile service to transpile this.
@@ -76,6 +61,9 @@ export default function Editor(props: { initialCode?: string }) {
     })
     alert(res.ok ? 'Saved' : 'Failed to save')
   }
+  async function db() {
+    await initDB()
+  }
 
   return (
     <div className="flex flex-row gap-2">
@@ -104,6 +92,12 @@ export default function Editor(props: { initialCode?: string }) {
             >
               Save
             </button>
+            {/* <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={db}
+            >
+              Init DB
+            </button> */}
           </div>
           <div className="flex mr-2 my-2">
             <input

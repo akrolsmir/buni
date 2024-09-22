@@ -1,7 +1,8 @@
 import React from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 // TODO: will this compile properly on the server?
-import { initDB } from '../codegen/buni/db'
+import { initDB, listMessages, writeMessage } from '../codegen/buni/db'
+import { modifyCode } from '../codegen/buni/codegen'
 
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
 export default function Editor(props: { initialCode?: string }) {
@@ -26,21 +27,20 @@ export default function Editor(props: { initialCode?: string }) {
 
   const [modify, setModify] = React.useState('')
   const [modifying, setModifying] = React.useState(false)
-  const handleModify = () => {
+  const handleModify = async () => {
     setModifying(true)
-    fetch('/modify', {
-      method: 'POST',
-      body: JSON.stringify({ code, modify }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => res.text())
-      .then((text) => setCode(text))
-      .finally(() => setModifying(false))
+
+    await writeMessage(appName, 'austin', modify)
+    const response = await modifyCode(code, modify)
+    await writeMessage(appName, 'claude', response)
+    // TODO: actually update the code
+    setModifying(false)
   }
 
   const URL = window.location.href as string
+  // URL is like http://localhost:3000/edit/my-app-name/app
+  const appName = URL.split('/edit/')[1].split('/')[0]
+
   function openPreview() {
     window.open(URL.replace('/edit/', '/app/'), '_blank')
   }
@@ -65,10 +65,44 @@ export default function Editor(props: { initialCode?: string }) {
     await initDB()
   }
 
+  const [showCode, setShowCode] = React.useState(false)
+  const [messages, setMessages] = React.useState<Message[]>([])
+  // TODO: Update messages after writing them
+  React.useEffect(() => {
+    listMessages(appName).then(setMessages)
+  }, [])
+
   return (
     <div className="flex flex-row gap-2">
       <div className="w-1/2">
-        <iframe srcDoc={transpiled} className="w-full h-screen" />
+        <div className="flex items-center m-1 justify-end">
+          <input
+            type="checkbox"
+            id="showCodeToggle"
+            className="mr-2"
+            checked={showCode}
+            onChange={() => setShowCode(!showCode)}
+          />
+          <label htmlFor="showCodeToggle" className="text-sm">
+            Show Code
+          </label>
+        </div>
+        {showCode ? (
+          <CodeEditor
+            value={code}
+            language="js"
+            placeholder="Please enter TSX code."
+            onChange={(event) => setCode(event.target.value)}
+            padding={15}
+            style={{
+              backgroundColor: '#f5f5f5',
+              fontFamily:
+                'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+            }}
+          />
+        ) : (
+          <iframe srcDoc={transpiled} className="w-full h-screen" />
+        )}
       </div>
       <div className="w-1/2 overflow-auto h-screen">
         <div className="h-full">
@@ -120,18 +154,22 @@ export default function Editor(props: { initialCode?: string }) {
               {modifying ? 'Modifying...' : 'Modify with AI'}
             </button>
           </div>
-          <CodeEditor
-            value={code}
-            language="js"
-            placeholder="Please enter TSX code."
-            onChange={(event) => setCode(event.target.value)}
-            padding={15}
-            style={{
-              backgroundColor: '#f5f5f5',
-              fontFamily:
-                'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-            }}
-          />
+          {/* Messages */}
+          {messages.map((message) => (
+            <div key={message.message_id} className="mb-2 p-1">
+              <div className="flex items-baseline mb-1">
+                <strong className="text-lg">{message.author_id}</strong>
+                <span className="text-xs text-gray-500 ml-2">
+                  {new Date(message.created_at).toLocaleString()}
+                </span>
+              </div>
+              <p className="text-gray-700">
+                {message.content.length > 280
+                  ? `${message.content.slice(0, 280)}...`
+                  : message.content}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

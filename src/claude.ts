@@ -62,6 +62,13 @@ export async function generateCode(request: string) {
   return filename
 }
 
+// Directly access the Anthropic API
+export async function sudoAnthropic(
+  body: Anthropic.Messages.MessageCreateParamsNonStreaming
+) {
+  return await anthropic.messages.create(body)
+}
+
 // Streaming version of generate; instead of writing to a file, stream the code
 export function generateCodeStream(request: string) {
   const stream = anthropic.messages.create({

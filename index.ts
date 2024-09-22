@@ -5,7 +5,12 @@ import {
   readFromVolume,
   writeToVolume,
 } from './src/volumes'
-import { generateCode, generateCodeStream, modifyCode } from './src/claude'
+import {
+  generateCode,
+  generateCodeStream,
+  modifyCode,
+  sudoAnthropic,
+} from './src/claude'
 
 const db = new Database('routes.sqlite')
 initializeDatabase()
@@ -211,16 +216,25 @@ Bun.serve({
         db.run(content)
       }
       if (path === 'db/query') {
-        const { filename, query } = (await req.json()) as {
+        const { filename, query, params } = (await req.json()) as {
           filename: string
           query: string
+          params: Record<string, any>
         }
         const db = dbOnVolume(filename)
-        const result = db.query(query).all()
+        const result = db.query(query).all(params)
         return new Response(JSON.stringify(result), {
           headers: { 'Content-Type': 'application/json' },
         })
       }
+    }
+
+    if (path === 'anthropic') {
+      const body = await req.json()
+      const msg = await sudoAnthropic(body as any)
+      return new Response(JSON.stringify(msg), {
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
 
     // Use app/artifact as the homepage for now:

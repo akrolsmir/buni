@@ -11,7 +11,7 @@ Follow these guidelines when creating the component:
 1. Start the component with "export default function Component() {".
 2. Use TypeScript (TSX) syntax.
 3. Utilize Tailwind CSS for styling.
-4. Ensure the component is self-contained and doesn't rely on external dependencies unless absolutely necessary.
+4. Avoid importing external libraries. If absolutely necessary, import from esm.sh eg "import confetti from 'https://esm.sh/canvas-confetti'"
 5. Include appropriate props and state management if required.
 6. Add comments to explain complex logic or important parts of the component.
 

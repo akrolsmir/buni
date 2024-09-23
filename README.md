@@ -32,11 +32,11 @@ compileReact takes in code as a string, and generates a single file HTML compone
 
 ### Next big milestones
 
-- Share components
-- Store component metadata (in sqlite?)
+- [x] Share components
+- [x] Store component metadata (in sqlite?)
 - Versioning, history
-- Show chat history somewhere
-- Import other NPM modules?
+- [x] Show chat history somewhere
+- [x] Import other NPM modules?
 
 ### Farther out
 
@@ -47,11 +47,12 @@ compileReact takes in code as a string, and generates a single file HTML compone
   - Docs and other context, ala Cursor
   - Other generated code
   - Image context for Claude?
+- Auth for users
+  - AuthJS?
+- Figure out streaming?
 - Shared global database that Claude can introspect
 - Browse through code?
 - Mobile view?
-- Auth for users
-  - AuthJS?
 - Social: really good database
 - API/LLM capabilities
 

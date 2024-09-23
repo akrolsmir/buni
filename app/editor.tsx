@@ -1,8 +1,13 @@
 import React from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 // TODO: will this compile properly on the server?
-import { initDB, listMessages, writeMessage } from '../codegen/buni/db'
-import { modifyCode } from '../codegen/buni/codegen'
+import {
+  clearMessages,
+  initDB,
+  listMessages,
+  writeMessage,
+} from '../codegen/buni/db'
+import { extractBlock, modifyCode, rewriteCode } from '../codegen/buni/codegen'
 
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
 export default function Editor(props: { initialCode?: string }) {
@@ -33,7 +38,6 @@ export default function Editor(props: { initialCode?: string }) {
     await writeMessage(appName, 'austin', modify)
     const response = await modifyCode(code, modify)
     await writeMessage(appName, 'claude', response)
-    // TODO: actually update the code
     setModifying(false)
   }
 
@@ -67,10 +71,25 @@ export default function Editor(props: { initialCode?: string }) {
 
   const [showCode, setShowCode] = React.useState(false)
   const [messages, setMessages] = React.useState<Message[]>([])
-  // TODO: Update messages after writing them
+  // TODO: Eventually stream messages from server instead of polling
   React.useEffect(() => {
-    listMessages(appName).then(setMessages)
-  }, [])
+    const fetchMessages = () => {
+      listMessages(appName).then(setMessages)
+    }
+    // Fetch messages now, and then every 2 seconds
+    fetchMessages()
+    const intervalId = setInterval(fetchMessages, 2000)
+    return () => clearInterval(intervalId)
+  }, [appName])
+
+  async function applyDiff(content: string) {
+    setModifying(true)
+    const diff = extractBlock(content, 'code_diff')
+    const rewritten = await rewriteCode(code, diff)
+    setCode(rewritten)
+    await writeMessage(appName, 'austin', 'Applied code diff!')
+    setModifying(false)
+  }
 
   return (
     <div className="flex flex-row gap-2">
@@ -126,6 +145,12 @@ export default function Editor(props: { initialCode?: string }) {
             >
               Save
             </button>
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={() => clearMessages(appName)}
+            >
+              Clear Messages
+            </button>
             {/* <button
               className="text-blue-500 text-sm hover:text-blue-700"
               onClick={db}
@@ -159,7 +184,7 @@ export default function Editor(props: { initialCode?: string }) {
             <div key={message.message_id} className="mb-2 p-1">
               <div className="flex items-baseline mb-1">
                 <strong className="text-lg">{message.author_id}</strong>
-                <span className="text-xs text-gray-500 ml-2">
+                <span className="text-xs text-gray-400 ml-2">
                   {new Date(message.created_at).toLocaleString()}
                 </span>
               </div>
@@ -168,6 +193,15 @@ export default function Editor(props: { initialCode?: string }) {
                   ? `${message.content.slice(0, 280)}...`
                   : message.content}
               </p>
+              {/* If message contains the string <code_diff>, then render a button to apply the diff */}
+              {message.content.includes('<code_diff>') && (
+                <button
+                  className="px-4 py-1 bg-blue-500 text-white"
+                  onClick={() => applyDiff(message.content)}
+                >
+                  Apply Diff
+                </button>
+              )}
             </div>
           ))}
         </div>

@@ -58,18 +58,75 @@ export async function modifyCode(code: string, request: string) {
       },
     ],
   }
-  const msg = await fetch('/anthropic', {
+  const response = await fetch('/anthropic', {
     method: 'POST',
     body: JSON.stringify(body),
   })
-  const json = await msg.json()
+  const json = await response.json()
   const text = (json.content[0] as { text: string }).text
   return text
 }
 
 // Extract a block of text from between <tag> and </tag>
-function extractBlock(text: string, tag: string) {
+export function extractBlock(text: string, tag: string) {
+  console.log('text', text, 'tag', tag)
   const start = text.indexOf(`<${tag}>`) + `<${tag}>`.length
   const end = text.indexOf(`</${tag}>`)
   return start !== -1 && end !== -1 ? text.slice(start, end) : ''
+}
+
+const REWRITE_PROMPT = `
+You are tasked with applying a code diff to an original code file. Here's the original code file:
+
+<original_code>
+{{ORIGINAL_CODE}}
+</original_code>
+
+And here's the code diff to apply:
+
+<code_diff>
+{{CODE_DIFF}}
+</code_diff>
+
+Your task is to apply this diff to the original code and output the resulting file. Here's how to interpret the diff:
+- Lines starting with '+' are additions
+- Lines starting with '-' are deletions
+- Lines starting with a space are context lines (unchanged)
+
+To apply the diff:
+1. Go through the diff line by line
+2. For lines starting with '+', add them to the output
+3. For lines starting with '-', remove the corresponding line from the original code
+4. For lines starting with a space, keep the corresponding line from the original code unchanged
+
+After applying all changes, output the resulting code file. Make sure to preserve the original formatting, including indentation and blank lines, except where the diff specifies changes.
+
+Provide your output within <result> tags. The output should be the entire resulting code file after applying the diff, not just the changed lines.
+`
+
+// Returns the rewritten code given a diff
+// TODO: Handle case if diff is already applied or not valid
+export async function rewriteCode(code: string, diff: string) {
+  const prompt = REWRITE_PROMPT.replace('{{ORIGINAL_CODE}}', code).replace(
+    '{{CODE_DIFF}}',
+    diff
+  )
+  const body = {
+    model: 'claude-3-haiku-20240307',
+    max_tokens: 4096,
+    temperature: 0,
+    messages: [
+      {
+        role: 'user',
+        content: [{ type: 'text', text: prompt }],
+      },
+    ],
+  }
+  const response = await fetch('/anthropic', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+  const json = await response.json()
+  const text = (json.content[0] as { text: string }).text
+  return extractBlock(text, 'result')
 }

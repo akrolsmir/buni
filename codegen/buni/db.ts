@@ -112,3 +112,9 @@ export async function listMessages(app_name: string) {
   )
   return res as Message[]
 }
+
+export async function clearMessages(app_name: string) {
+  await query(
+    `DELETE FROM Messages WHERE app_id = (SELECT app_id FROM Apps WHERE app_name = '${app_name}')`
+  )
+}

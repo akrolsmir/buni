@@ -89,6 +89,7 @@ Bun.serve({
     const path = url.pathname.slice(1)
 
     // At /transpile?code=..., transpile the code and return it
+    // Note: badly named as we're just building here
     if (path === 'transpile') {
       // Accepts POST and GET
       const code =
@@ -173,7 +174,7 @@ Bun.serve({
         return new Response('File not found', { status: 404 })
       }
 
-      const editor = await Bun.file('./app/editor.tsx').text()
+      const editor = await readFromVolume('buni/editor.tsx')
       return compileReact(editor, { initialCode: source })
     }
 

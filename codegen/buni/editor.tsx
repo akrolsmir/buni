@@ -1,6 +1,10 @@
+// A few hardcoded imports
 import React from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
-// TODO: will this compile properly on the server?
+// Can also directly import esm.sh; make sure to exclude react
+import * as DropdownMenu from 'https://esm.sh/@radix-ui/react-dropdown-menu@2.1.1?external=react,react-dom'
+// Import files from codegen/* as %/*
+// TODO: Consider making relative imports work with ./
 import {
   backupAndSaveCode,
   clearMessages,
@@ -9,9 +13,8 @@ import {
   listVersions,
   loadVersion,
   writeMessage,
-} from '../codegen/buni/db'
-import { extractBlock, modifyCode, rewriteCode } from '../codegen/buni/codegen'
-import * as DropdownMenu from 'https://esm.sh/@radix-ui/react-dropdown-menu@2.1.1?external=react,react-dom'
+} from '%/buni/db'
+import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
 
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
 export default function Editor(props: { initialCode?: string }) {
@@ -47,7 +50,8 @@ export default function Editor(props: { initialCode?: string }) {
 
   const URL = window.location.href as string
   // URL is like http://localhost:3000/edit/my-app-name/app
-  const appName = URL.split('/edit/')[1].split('/')[0]
+  // TODO: Robustify, also unhardcode
+  const appName = URL.split('/edit/')[1]?.split('/')[0] ?? 'buni'
 
   function openPreview() {
     window.open(URL.replace('/edit/', '/app/'), '_blank')

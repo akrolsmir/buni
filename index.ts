@@ -190,6 +190,11 @@ Bun.serve({
       if (extension === 'tsx' || extension === 'ts') {
         const transpiler = new Bun.Transpiler({
           loader: extension,
+          tsconfig: {
+            compilerOptions: {
+              jsx: 'react-jsxdev',
+            },
+          },
         })
         js = transpiler.transformSync(contents)
         // Hack: append jsxDev import from esm.sh

@@ -15,6 +15,7 @@ import {
   writeMessage,
 } from '%/buni/db'
 import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
+import Versions from '%/buni/versions'
 
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
 export default function Editor(props: { initialCode?: string }) {
@@ -48,22 +49,22 @@ export default function Editor(props: { initialCode?: string }) {
     setModifying(false)
   }
 
-  const URL = window.location.href as string
+  const url = window.location.href as string
   // URL is like http://localhost:3000/edit/my-app-name/app
   // TODO: Robustify, also unhardcode
-  const appName = URL.split('/edit/')[1]?.split('/')[0] ?? 'buni'
-
+  const appName = url.split('/edit/')[1]?.split('/')[0] ?? 'buni'
+  const filename = url.split('/edit/')[1] + '.tsx'
   function openPreview() {
-    window.open(URL.replace('/edit/', '/app/'), '_blank')
+    window.open(url.replace('/edit/', '/app/'), '_blank')
   }
   function copyExport() {
-    const esmURL = URL.replace('/edit/', '/esm/')
+    const esmURL = url.replace('/edit/', '/esm/')
     const importText = `import Component from "${esmURL}.tsx"`
     navigator.clipboard.writeText(importText)
     alert(`Copied to clipboard:\n\n${importText}`)
   }
   async function saveCode() {
-    const filename = URL.split('/edit/')[1] + '.tsx'
+    const filename = url.split('/edit/')[1] + '.tsx'
     await backupAndSaveCode(filename, code)
     alert('Saved')
   }
@@ -86,7 +87,7 @@ export default function Editor(props: { initialCode?: string }) {
 
   const [versions, setVersions] = React.useState<number[]>([])
   React.useEffect(() => {
-    const filename = URL.split('/edit/')[1] + '.tsx'
+    const filename = url.split('/edit/')[1] + '.tsx'
     listVersions(filename).then(setVersions)
   }, [appName])
 
@@ -159,34 +160,15 @@ export default function Editor(props: { initialCode?: string }) {
             >
               Clear Messages
             </button>
-            {/* <button
-              className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={db}
-            >
-              Init DB
-            </button> */}
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger className="text-blue-500 text-sm hover:text-blue-700">
-                Versions
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content>
-                {versions.map((version) => (
-                  <DropdownMenu.Item
-                    key={version}
-                    className="text-blue-500 text-sm hover:text-blue-700 bg-gray-50 w-10 text-center cursor-pointer"
-                    onClick={async () => {
-                      const filename = URL.split('/edit/')[1] + '.tsx'
-                      const newCode = await loadVersion(filename, version)
-                      setCode(newCode)
-                      alert('Loaded version ' + version)
-                      // TODO: reload versions
-                    }}
-                  >
-                    {version}
-                  </DropdownMenu.Item>
-                ))}
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+            <Versions
+              filename={filename}
+              onSelect={async (version) => {
+                const newCode = await loadVersion(filename, version)
+                setCode(newCode)
+                alert('Loaded version ' + version)
+                // TODO: reload versions
+              }}
+            />
           </div>
           <div className="flex mr-2 my-2">
             <input

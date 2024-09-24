@@ -31,6 +31,16 @@ CREATE TABLE IF NOT EXISTS Users (
 -- Seed users
 INSERT OR IGNORE INTO Users (user_id, username) VALUES ('claude', 'Claude');
 INSERT OR IGNORE INTO Users (user_id, username) VALUES ('austin', 'Austin');
+
+
+CREATE TABLE IF NOT EXISTS Versions (
+    filename TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (filename, version)
+);
+
 `
 
 export async function initDB() {
@@ -117,4 +127,43 @@ export async function clearMessages(app_name: string) {
   await query(
     `DELETE FROM Messages WHERE app_id = (SELECT app_id FROM Apps WHERE app_name = '${app_name}')`
   )
+}
+
+async function writeFile(filename: string, content: string) {
+  await fetch('/write', {
+    method: 'POST',
+    body: JSON.stringify({
+      filename,
+      content,
+    }),
+  })
+}
+
+// Could also consider saving file versions in DB instead of straight on disk
+export async function backupAndSaveCode(filename: string, code: string) {
+  // In a single SQL query, find the current version of the file in Versions, increment it, and save the new version
+  await query(
+    `INSERT INTO Versions (filename, version, content) 
+    VALUES ($filename, 
+      (SELECT COALESCE(MAX(version), 0) + 1 FROM Versions WHERE filename = $filename), 
+      $code)`,
+    { $filename: filename, $code: code }
+  )
+  // Overwrite the existing file
+  await writeFile(filename, code)
+}
+
+// Return a list of integers, representing the version numbers
+export async function listVersions(filename: string) {
+  const res = await query(
+    `SELECT version FROM Versions WHERE filename = '${filename}'`
+  )
+  return (res as { version: number }[]).map((v) => v.version)
+}
+
+export async function loadVersion(filename: string, version: number) {
+  const res = await query(
+    `SELECT content FROM Versions WHERE filename = '${filename}' AND version = ${version}`
+  )
+  return res[0].content
 }

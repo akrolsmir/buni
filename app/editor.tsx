@@ -2,12 +2,16 @@ import React from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 // TODO: will this compile properly on the server?
 import {
+  backupAndSaveCode,
   clearMessages,
   initDB,
   listMessages,
+  listVersions,
+  loadVersion,
   writeMessage,
 } from '../codegen/buni/db'
 import { extractBlock, modifyCode, rewriteCode } from '../codegen/buni/codegen'
+import * as DropdownMenu from 'https://esm.sh/@radix-ui/react-dropdown-menu@2.1.1?external=react,react-dom'
 
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
 export default function Editor(props: { initialCode?: string }) {
@@ -55,15 +59,9 @@ export default function Editor(props: { initialCode?: string }) {
     alert(`Copied to clipboard:\n\n${importText}`)
   }
   async function saveCode() {
-    const filename = window.location.pathname.split('/').pop() + '.tsx'
-    const res = await fetch('/write', {
-      method: 'POST',
-      body: JSON.stringify({ filename, content: code }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    alert(res.ok ? 'Saved' : 'Failed to save')
+    const filename = URL.split('/edit/')[1] + '.tsx'
+    await backupAndSaveCode(filename, code)
+    alert('Saved')
   }
   async function db() {
     await initDB()
@@ -80,6 +78,12 @@ export default function Editor(props: { initialCode?: string }) {
     fetchMessages()
     const intervalId = setInterval(fetchMessages, 2000)
     return () => clearInterval(intervalId)
+  }, [appName])
+
+  const [versions, setVersions] = React.useState<number[]>([])
+  React.useEffect(() => {
+    const filename = URL.split('/edit/')[1] + '.tsx'
+    listVersions(filename).then(setVersions)
   }, [appName])
 
   async function applyDiff(content: string) {
@@ -157,6 +161,28 @@ export default function Editor(props: { initialCode?: string }) {
             >
               Init DB
             </button> */}
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger className="text-blue-500 text-sm hover:text-blue-700">
+                Versions
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content>
+                {versions.map((version) => (
+                  <DropdownMenu.Item
+                    key={version}
+                    className="text-blue-500 text-sm hover:text-blue-700 bg-gray-50 w-10 text-center cursor-pointer"
+                    onClick={async () => {
+                      const filename = URL.split('/edit/')[1] + '.tsx'
+                      const newCode = await loadVersion(filename, version)
+                      setCode(newCode)
+                      alert('Loaded version ' + version)
+                      // TODO: reload versions
+                    }}
+                  >
+                    {version}
+                  </DropdownMenu.Item>
+                ))}
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
           </div>
           <div className="flex mr-2 my-2">
             <input

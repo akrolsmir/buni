@@ -48,13 +48,18 @@ compileReact takes in code as a string, and generates a single file HTML compone
   - Other generated code
   - Image context for Claude?
 - Auth for users
-  - AuthJS?
+  - Implement via AuthJS?
 - Figure out streaming?
 - Shared global database that Claude can introspect
 - Browse through code?
 - Mobile view?
 - Social: really good database
 - API/LLM capabilities
+
+### Quick wins to try
+
+- Suggest changes to the app (eg 1 whimsical, 1 layout, 1 fundamental)
+- Export app to single HTML to self-host?
 
 ### Misc TODOs
 

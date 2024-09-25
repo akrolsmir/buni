@@ -1,14 +1,9 @@
-// Can import from things built into the html
+// A few hardcoded imports
 import React from 'react'
-
-// Can also import things as part of top-level package.json
-import CodeMirror from '@uiw/react-codemirror'
-import { javascript } from '@codemirror/lang-javascript'
-
+import CodeEditor from '@uiw/react-textarea-code-editor'
 // Can also directly import esm.sh; make sure to exclude react
 import * as DropdownMenu from 'https://esm.sh/@radix-ui/react-dropdown-menu@2.1.1?external=react,react-dom'
-
-// Can import files from codegen/* as %/*
+// Import files from codegen/* as %/*
 // TODO: Consider making relative imports work with ./
 import {
   backupAndSaveCode,
@@ -123,15 +118,17 @@ export default function Editor(props: { initialCode?: string }) {
           </label>
         </div>
         {showCode ? (
-          <CodeMirror
+          <CodeEditor
             value={code}
-            onChange={(value) => setCode(value)}
-            extensions={[
-              javascript({
-                jsx: true,
-                typescript: true,
-              }),
-            ]}
+            language="js"
+            placeholder="Please enter TSX code."
+            onChange={(event) => setCode(event.target.value)}
+            padding={15}
+            style={{
+              backgroundColor: '#f5f5f5',
+              fontFamily:
+                'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+            }}
           />
         ) : (
           <iframe srcDoc={transpiled} className="w-full h-screen" />

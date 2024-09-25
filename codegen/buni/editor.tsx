@@ -22,9 +22,11 @@ import {
 import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
 import Versions from '%/buni/versions'
 
+const DEFAULT_CODE = `const App = () => { return <h1>Hello World</h1> }; export default App;`
+
 // Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
 export default function Editor(props: { initialCode?: string }) {
-  const [code, setCode] = React.useState(props.initialCode ?? '')
+  const [code, setCode] = React.useState(props.initialCode ?? DEFAULT_CODE)
   const [transpiled, setTranspiled] = React.useState('')
 
   // Use the /transpile service to transpile this.

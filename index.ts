@@ -5,12 +5,7 @@ import {
   readFromVolume,
   writeToVolume,
 } from './src/volumes'
-import {
-  generateCode,
-  generateCodeStream,
-  modifyCode,
-  sudoAnthropic,
-} from './src/claude'
+import { generateCode, generateCodeStream, sudoAnthropic } from './src/claude'
 
 const db = new Database('routes.sqlite')
 initializeDatabase()
@@ -139,17 +134,6 @@ Bun.serve({
       return new Response(null, { status: 200 })
     }
 
-    if (path === 'modify') {
-      const { code, modify } = (await req.json()) as {
-        code: string
-        modify: string
-      }
-      const modifiedCode = await modifyCode(code, modify)
-      return new Response(modifiedCode, {
-        headers: { 'Content-Type': 'text/plain' },
-      })
-    }
-
     // Route to the corresponding file in the /app directory
     if (path.startsWith('app/')) {
       const filename = path.slice('app/'.length) + '.tsx'
@@ -239,6 +223,12 @@ Bun.serve({
       const body = await req.json()
       const msg = await sudoAnthropic(body as any)
       return new Response(JSON.stringify(msg), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (path === 'ls') {
+      return new Response(JSON.stringify(listVolume()), {
         headers: { 'Content-Type': 'application/json' },
       })
     }

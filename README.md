@@ -34,13 +34,14 @@ compileReact takes in code as a string, and generates a single file HTML compone
 
 - [x] Share components
 - [x] Store component metadata (in sqlite?)
-- Versioning, history
+- [x] Versioning, history
 - [x] Show chat history somewhere
 - [x] Import other NPM modules?
 
 ### Farther out
 
-- Get to bootstrapped
+- [x] Get to bootstrapped
+- [x] Browse through code?
 - Pass more context to Claude
   - NPM packages
   - External APIs
@@ -51,7 +52,6 @@ compileReact takes in code as a string, and generates a single file HTML compone
   - Implement via AuthJS?
 - Figure out streaming?
 - Shared global database that Claude can introspect
-- Browse through code?
 - Mobile view?
 - Social: really good database
 - API/LLM capabilities

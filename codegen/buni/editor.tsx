@@ -1,5 +1,4 @@
-// A few hardcoded imports
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 // Can also directly import esm.sh; make sure to exclude react
 import * as DropdownMenu from 'https://esm.sh/@radix-ui/react-dropdown-menu@2.1.1?external=react,react-dom'
@@ -14,15 +13,25 @@ import {
   loadVersion,
   writeMessage,
 } from '%/buni/db'
+// WARNING: this is a dynamic, un-git'd import
+import FileBrowser from '%/browser/app'
 import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
 import Versions from '%/buni/versions'
 
 const DEFAULT_CODE = `const App = () => { return <h1>Hello World</h1> }; export default App;`
 
-// Simple two pane editor for tsx, with the left pane being the output and the right pane being the code
 export default function Editor(props: { initialCode?: string }) {
   const [code, setCode] = React.useState(props.initialCode ?? DEFAULT_CODE)
   const [transpiled, setTranspiled] = React.useState('')
+  const [showFileBrowser, setShowFileBrowser] = React.useState(false)
+  const [files, setFiles] = useState([])
+
+  useEffect(() => {
+    fetch('/ls')
+      .then((response) => response.json())
+      .then((data) => setFiles(data))
+      .catch((error) => console.error('Error fetching files:', error))
+  }, [])
 
   // Use the /transpile service to transpile this.
   // TODO: ideally, this code could directly link the transpilation code rather than doing another server<>client round trip
@@ -162,6 +171,12 @@ export default function Editor(props: { initialCode?: string }) {
             >
               Clear Messages
             </button>
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={() => setShowFileBrowser(!showFileBrowser)}
+            >
+              Files
+            </button>
             <Versions
               filename={filename}
               onSelect={async (version) => {
@@ -172,6 +187,7 @@ export default function Editor(props: { initialCode?: string }) {
               }}
             />
           </div>
+          {showFileBrowser && <FileBrowser files={files} />}
           <div className="flex mr-2 my-2">
             <input
               type="text"

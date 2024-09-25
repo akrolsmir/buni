@@ -72,7 +72,13 @@ export async function createApp(app: {
 }) {
   const app_id = randomId()
   await query(
-    `INSERT INTO Apps (app_id, creator_id, app_name, description) VALUES ('${app_id}', '${app.creator_id}', '${app.app_name}', '${app.description}')`
+    `INSERT INTO Apps (app_id, creator_id, app_name, description) VALUES ($app_id, $creator_id, $app_name, $description)`,
+    {
+      $app_id: app_id,
+      $creator_id: app.creator_id,
+      $app_name: app.app_name,
+      $description: app.description,
+    }
   )
   return app_id
 }
@@ -118,14 +124,16 @@ type Message = {
 
 export async function listMessages(app_name: string) {
   const res = await query(
-    `SELECT * FROM Messages WHERE app_id = (SELECT app_id FROM Apps WHERE app_name = '${app_name}')`
+    `SELECT * FROM Messages WHERE app_id = (SELECT app_id FROM Apps WHERE app_name = $app_name)`,
+    { $app_name: app_name }
   )
   return res as Message[]
 }
 
 export async function clearMessages(app_name: string) {
   await query(
-    `DELETE FROM Messages WHERE app_id = (SELECT app_id FROM Apps WHERE app_name = '${app_name}')`
+    `DELETE FROM Messages WHERE app_id = (SELECT app_id FROM Apps WHERE app_name = $app_name)`,
+    { $app_name: app_name }
   )
 }
 
@@ -156,14 +164,16 @@ export async function backupAndSaveCode(filename: string, code: string) {
 // Return a list of integers, representing the version numbers
 export async function listVersions(filename: string) {
   const res = await query(
-    `SELECT version FROM Versions WHERE filename = '${filename}'`
+    `SELECT version FROM Versions WHERE filename = $filename`,
+    { $filename: filename }
   )
   return (res as { version: number }[]).map((v) => v.version)
 }
 
 export async function loadVersion(filename: string, version: number) {
   const res = await query(
-    `SELECT content FROM Versions WHERE filename = '${filename}' AND version = ${version}`
+    `SELECT content FROM Versions WHERE filename = $filename AND version = $version`,
+    { $filename: filename, $version: version }
   )
   return res[0].content
 }

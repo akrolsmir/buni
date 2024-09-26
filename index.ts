@@ -5,7 +5,7 @@ import {
   readFromVolume,
   writeToVolume,
 } from './src/volumes'
-import { generateCode, generateCodeStream, sudoAnthropic } from './src/claude'
+import { generateCodeStream, sudoAnthropic } from './src/claude'
 
 const db = new Database('routes.sqlite')
 initializeDatabase()
@@ -92,17 +92,6 @@ Bun.serve({
       return compileReact(decodeURIComponent(code ?? ''))
     }
 
-    if (path === 'generate') {
-      const prompt = await req.text()
-      const filename = await generateCode(prompt)
-      return new Response(
-        JSON.stringify({ url: `/edit/${filename.replace(/\.tsx$/, '')}` }),
-        {
-          headers: { 'Content-Type': 'application/json' },
-        }
-      )
-    }
-
     // Streaming version of generate
     if (path === 'generate-stream') {
       const prompt = await req.text()
@@ -136,7 +125,7 @@ Bun.serve({
 
     // Route to the corresponding file in the /app directory
     if (path.startsWith('app/')) {
-      const filename = path.slice('app/'.length) + '.tsx'
+      const filename = path.slice('app/'.length)
       let source
       try {
         source = await readFromVolume(filename)
@@ -149,7 +138,7 @@ Bun.serve({
 
     // Use app/editor.tsx to edit the code in the /codegen directory
     if (path.startsWith('edit/')) {
-      const filename = path.slice(5) + '.tsx'
+      const filename = path.slice(5)
       let source
       try {
         source = await readFromVolume(filename)

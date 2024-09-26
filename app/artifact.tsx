@@ -13,21 +13,6 @@ export default function Artifact() {
   const [generating, setGenerating] = useState(false)
   const [generated, setGenerated] = useState(DEFAULT_CODE)
 
-  // On submit, generate the artifact by calling the /generate endpoint
-  function generateArtifact() {
-    setGenerating(true)
-    fetch('/generate', {
-      method: 'POST',
-      body: prompt,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // Instead, navigate to the generated artifact
-        window.location.href = data.url
-      })
-      .finally(() => setGenerating(false))
-  }
-
   async function generateArtifactStream() {
     setGenerating(true)
     await createApp({
@@ -61,7 +46,7 @@ export default function Artifact() {
       }),
     })
 
-    window.location.href = `/edit/${filename.replace('.tsx', '')}`
+    window.location.href = `/edit/${filename}`
     setGenerating(false)
   }
 

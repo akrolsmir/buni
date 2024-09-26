@@ -61,21 +61,21 @@ export default function Editor(props: { initialCode?: string }) {
   }
 
   const url = window.location.href as string
-  // URL is like http://localhost:3000/edit/my-app-name/app
+  // URL is like http://localhost:3000/edit/my-app-name/app.tsx
   // TODO: Robustify, also unhardcode
   const appName = url.split('/edit/')[1]?.split('/')[0] ?? 'buni'
-  const filename = url.split('/edit/')[1] + '.tsx'
+  const filename = url.split('/edit/')[1]
   function openPreview() {
     window.open(url.replace('/edit/', '/app/'), '_blank')
   }
   function copyExport() {
     const esmURL = url.replace('/edit/', '/esm/')
-    const importText = `import Component from "${esmURL}.tsx"`
+    const importText = `import Component from "${esmURL}"`
     navigator.clipboard.writeText(importText)
     alert(`Copied to clipboard:\n\n${importText}`)
   }
   async function saveCode() {
-    const filename = url.split('/edit/')[1] + '.tsx'
+    const filename = url.split('/edit/')[1]
     await backupAndSaveCode(filename, code)
     alert('Saved')
   }
@@ -94,12 +94,6 @@ export default function Editor(props: { initialCode?: string }) {
     fetchMessages()
     const intervalId = setInterval(fetchMessages, 2000)
     return () => clearInterval(intervalId)
-  }, [appName])
-
-  const [versions, setVersions] = React.useState<number[]>([])
-  React.useEffect(() => {
-    const filename = url.split('/edit/')[1] + '.tsx'
-    listVersions(filename).then(setVersions)
   }, [appName])
 
   async function applyDiff(content: string) {

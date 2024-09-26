@@ -92,7 +92,7 @@ export default function Artifact() {
                   >
                     <a
                       className="hover:underline text-sm text-gray-500"
-                      href={`/edit/${app.app_name}/app`}
+                      href={`/edit/${app.app_name}/app.tsx`}
                       title={app.description}
                     >
                       {app.description}

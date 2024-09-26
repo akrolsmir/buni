@@ -143,6 +143,12 @@ export default function Editor(props: { initialCode?: string }) {
           <div className="flex flex-row gap-6 m-1 mb-4">
             <button
               className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={() => setShowFileBrowser(!showFileBrowser)}
+            >
+              Files
+            </button>
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
               onClick={openPreview}
             >
               Preview
@@ -158,18 +164,6 @@ export default function Editor(props: { initialCode?: string }) {
               onClick={saveCode}
             >
               Save
-            </button>
-            <button
-              className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={() => clearMessages(appName)}
-            >
-              Clear Messages
-            </button>
-            <button
-              className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={() => setShowFileBrowser(!showFileBrowser)}
-            >
-              Files
             </button>
             <Versions
               filename={filename}

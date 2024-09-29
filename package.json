@@ -4,6 +4,7 @@
   "type": "module",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.1",
+    "@auth/core": "^0.35.3",
     "@codemirror/lang-javascript": "^6.2.2",
     "@uiw/react-codemirror": "^4.23.0",
     "react": "^18.3.1",

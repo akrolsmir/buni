@@ -5,6 +5,9 @@ import {
   writeToVolume,
 } from './src/volumes'
 import { generateCodeStream, sudoAnthropic } from './src/claude'
+import { Auth, type AuthConfig } from '@auth/core'
+import { getToken } from '@auth/core/jwt'
+import Google from '@auth/core/providers/google'
 
 // Build the complete HTML for a given snippet of React code
 export async function compileReact(
@@ -73,11 +76,51 @@ export async function compileReact(
   })
 }
 
+const authConfig: AuthConfig = {
+  providers: [
+    Google({
+      // TODO: Separate auth variables for dev vs prod
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+  ],
+  secret: process.env.AUTH_SECRET,
+  trustHost: true,
+  // debug: true,
+  // callbacks: {
+  //   // Adding the access token means that you can make future API calls
+  //   // to eg Google as the user. Lasts 3600s = 1h
+  //   async jwt({ token, account, user }) {
+  //     // TODO: Register user in our DB?
+  //     if (account) {
+  //       token.accessToken = account.access_token
+  //     }
+  //     return token
+  //   },
+  //   async session({ session, token }) {
+  //     session.user.accessToken = token.accessToken
+  //     return session
+  //   },
+  // },
+}
+
+async function getSession(req: Request) {
+  return await getToken({ req, secret: process.env.AUTH_SECRET })
+}
+
 Bun.serve({
   port: 3000,
   async fetch(req) {
     const url = new URL(req.url)
     const path = url.pathname.slice(1)
+
+    // Handle authentication
+    if (path.startsWith('auth/')) {
+      return await Auth(req, authConfig)
+    }
+
+    // To get user info:
+    // const session = await getSession(req)
 
     // At /transpile?code=..., transpile the code and return it
     // Note: badly named as we're just building here

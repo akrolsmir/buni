@@ -40,26 +40,43 @@ compileReact takes in code as a string, and generates a single file HTML compone
 
 ### Farther out
 
+- [x] Figure out streaming?
 - [x] Get to bootstrapped
 - [x] Browse through code?
+- Auth for users
+  - [x] Implement via AuthJS?
+  - how does permissioning work...???
 - Pass more context to Claude
   - NPM packages
   - External APIs
   - Docs and other context, ala Cursor
   - Other generated code
   - Image context for Claude?
-- Auth for users
-  - Implement via AuthJS?
-- Figure out streaming?
-- Shared global database that Claude can introspect
-- Mobile view?
-- Social: really good database
+  - Longterm planning, readme/knowledge.md?
+- gitlike version control? and pinning versions?
 - API/LLM capabilities
+- Figure out story for testing non-UI (eg prompts)
+- Shared global database that Claude can introspect
+  - Dashboard like https://libsqlstudio.com/?
+  - Or get buni to build our own >.>
+- Mobile view? (maybe the apps are mobile by default cuz screen)
+- Social: really good database
 
 ### Quick wins to try
 
 - Suggest changes to the app (eg 1 whimsical, 1 layout, 1 fundamental)
 - Export app to single HTML to self-host?
+- Instead of having a UI toolbar, ask Claude to do stuff like "export"?
+  - Kind of like "--help" in a CLI
+- Build out chat, comments
+- Store this README directly inside Buni
+- Add in a decent UI library (ShadCN?)
+
+### Test apps
+
+- "Twitter for apps"?
+- Comments, chat <- tests DB, also realtime streaming?
+- Dalle <- tests external API
 
 ### Misc TODOs
 

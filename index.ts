@@ -3,6 +3,7 @@ import {
   listVolume,
   readFromVolume,
   writeToVolume,
+  deleteFromVolume,
 } from './src/volumes'
 import { generateCodeStream, sudoAnthropic } from './src/claude'
 import { Auth, type AuthConfig } from '@auth/core'
@@ -257,6 +258,15 @@ Bun.serve({
 
     if (path === 'ls') {
       return new Response(JSON.stringify(listVolume()), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (path.startsWith('delete/')) {
+      const appName = path.slice('delete/'.length)
+      // Delete the corresponding folder
+      await deleteFromVolume(appName)
+      return new Response(JSON.stringify({ success: true }), {
         headers: { 'Content-Type': 'application/json' },
       })
     }

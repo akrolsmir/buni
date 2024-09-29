@@ -61,6 +61,8 @@ compileReact takes in code as a string, and generates a single file HTML compone
   - Or get buni to build our own >.>
 - Mobile view? (maybe the apps are mobile by default cuz screen)
 - Social: really good database
+- Support admin actions in chat interface?
+  - E.g. delete app, publish, etc?
 
 ### Quick wins to try
 

@@ -1,6 +1,7 @@
 import { write, file, Glob } from 'bun'
 import { Database } from 'bun:sqlite'
 import { join } from 'path'
+import { rm } from 'fs/promises'
 
 const isFlySafe = !!process.env.FLY_IO
 const VOLUME_PATH = isFlySafe ? '/app/codegen' : './codegen'
@@ -49,4 +50,9 @@ export function getVolumePath() {
 // Get the sqlite db like 'foo/db.sqlite'
 export function dbOnVolume(filename: string) {
   return new Database(join(VOLUME_PATH, filename))
+}
+
+export async function deleteFromVolume(folderName: string) {
+  const path = join(VOLUME_PATH, folderName)
+  await rm(path, { recursive: true, force: true })
 }

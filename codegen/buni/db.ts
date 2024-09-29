@@ -177,3 +177,12 @@ export async function loadVersion(filename: string, version: number) {
   )
   return res[0].content
 }
+export async function deleteApp(app_name: string) {
+  await query(
+    `DELETE FROM Messages WHERE app_id = (SELECT app_id FROM Apps WHERE app_name = $app_name)`,
+    { $app_name: app_name }
+  )
+  await query(`DELETE FROM Apps WHERE app_name = $app_name`, {
+    $app_name: app_name,
+  })
+}

@@ -12,6 +12,7 @@ import {
   listVersions,
   loadVersion,
   writeMessage,
+  deleteApp,
 } from '%/buni/db'
 // WARNING: this is a dynamic, un-git'd import
 import FileBrowser from '%/browser/app'
@@ -78,6 +79,18 @@ export default function Editor(props: { initialCode?: string }) {
     const filename = url.split('/edit/')[1]
     await backupAndSaveCode(filename, code)
     alert('Saved')
+  }
+  async function handleDelete() {
+    if (window.confirm(`Are you sure you want to delete ${appName}?`)) {
+      await deleteApp(appName)
+      const response = await fetch(`/delete/${appName}`, { method: 'POST' })
+      if (response.ok) {
+        alert('App deleted successfully')
+        window.location.href = '/' // Redirect to home page
+      } else {
+        alert('Failed to delete app')
+      }
+    }
   }
   async function db() {
     await initDB()
@@ -165,6 +178,12 @@ export default function Editor(props: { initialCode?: string }) {
             >
               Save
             </button>
+            {/* <button
+              className="text-red-500 text-sm hover:text-red-700"
+              onClick={handleDelete}
+            >
+              Delete
+            </button> */}
             <Versions
               filename={filename}
               onSelect={async (version) => {

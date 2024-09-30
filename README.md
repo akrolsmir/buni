@@ -77,6 +77,9 @@ compileReact takes in code as a string, and generates a single file HTML compone
 ### Test apps
 
 - "Twitter for apps"?
+  - Make easy to fetch context from other files or examples (like cursor @)
+  - Expand developer box
+  - Refresh button to clear react state
 - Comments, chat <- tests DB, also realtime streaming?
 - Dalle <- tests external API
 

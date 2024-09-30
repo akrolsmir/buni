@@ -92,7 +92,7 @@ type App = {
 }
 
 export async function listApps() {
-  const res = await query('SELECT * FROM Apps')
+  const res = await query('SELECT * FROM Apps ORDER BY created_at DESC')
   return res as App[]
 }
 

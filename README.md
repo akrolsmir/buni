@@ -80,6 +80,12 @@ compileReact takes in code as a string, and generates a single file HTML compone
   - Make easy to fetch context from other files or examples (like cursor @)
   - Expand developer box
   - Refresh button to clear react state
+  - app_name should be short by default
+- "Peek AI"
+  - random things are hard (like iframe crossorigin stuff)
+  - show logs somewhere in editor, without opening chrome inspector?
+    - Or, just tell people about inspector for now.
+    - Though would be good to pipe back into chat. Also esp server logs.
 - Comments, chat <- tests DB, also realtime streaming?
 - Dalle <- tests external API
 

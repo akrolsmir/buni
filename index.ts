@@ -9,8 +9,8 @@ import { generateCodeStream, sudoAnthropic } from './src/claude'
 import { Auth, type AuthConfig } from '@auth/core'
 import { getToken } from '@auth/core/jwt'
 import Google from '@auth/core/providers/google'
-import { unlinkSync } from 'node:fs'
-import puppeteer from 'puppeteer'
+import { unlinkSync, existsSync } from 'node:fs'
+import puppeteer from 'puppeteer-core'
 
 // Build the complete HTML for a given snippet of React code
 // Generally runs in 2-20ms
@@ -293,7 +293,31 @@ Bun.serve({
       }
 
       try {
-        const browser = await puppeteer.launch()
+        let executablePath
+        if (process.env.NODE_ENV === 'production') {
+          executablePath = '/usr/local/chrome-headless-shell'
+        } else {
+          // For local development, try to find Chrome in common locations
+          // TODO: pretty hacky. Consider using puppeteer for local dev?
+          const possiblePaths = [
+            '/usr/bin/google-chrome-stable',
+            '/usr/bin/google-chrome',
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // macOS
+            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Windows
+          ]
+          executablePath = possiblePaths.find((path) => existsSync(path))
+          if (!executablePath) {
+            throw new Error(
+              'Could not find Chrome installation. Please install Chrome.'
+            )
+          }
+        }
+
+        console.log('Launching browser with executablePath:', executablePath)
+        const browser = await puppeteer.launch({
+          executablePath,
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        })
         const page = await browser.newPage()
         await page.goto(targetUrl)
         const screenshot = await page.screenshot({ type: 'png' })
@@ -304,7 +328,9 @@ Bun.serve({
         })
       } catch (error) {
         console.error('Screenshot error:', error)
-        return new Response('Failed to generate screenshot', { status: 500 })
+        return new Response('Failed to generate screenshot: ' + error.message, {
+          status: 500,
+        })
       }
     }
 

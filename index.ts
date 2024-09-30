@@ -46,16 +46,16 @@ export async function compileReact(
     // Don't bundle stuff we importmap from esm.sh
     external: ['react', 'react-dom', '@uiw/react-textarea-code-editor'],
   })
+  // Delete the temp files
+  unlinkSync(`./dist/App.${hash}.tsx`)
+  unlinkSync(`./dist/main.${hash}.tsx`)
+
   if (!built.success) {
     console.error(built.logs)
     throw new Error('Failed to build: ' + built.logs)
   }
   const bundled = await built.outputs[0].text()
   const sanitized = bundled.replace(/<\/script>/g, '<\\/script>')
-
-  // Delete the temp files
-  unlinkSync(`./dist/App.${hash}.tsx`)
-  unlinkSync(`./dist/main.${hash}.tsx`)
 
   // TODO: generate importmap and css dynamically?
   const html = `

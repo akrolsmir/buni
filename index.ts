@@ -10,6 +10,7 @@ import { Auth, type AuthConfig } from '@auth/core'
 import { getToken } from '@auth/core/jwt'
 import Google from '@auth/core/providers/google'
 import { unlinkSync } from 'node:fs'
+import puppeteer from 'puppeteer'
 
 // Build the complete HTML for a given snippet of React code
 // Generally runs in 2-20ms
@@ -283,6 +284,28 @@ Bun.serve({
       return new Response(JSON.stringify({ success: true }), {
         headers: { 'Content-Type': 'application/json' },
       })
+    }
+
+    if (path === 'screenshot') {
+      const targetUrl = url.searchParams.get('url')
+      if (!targetUrl) {
+        return new Response('Missing URL parameter', { status: 400 })
+      }
+
+      try {
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+        await page.goto(targetUrl)
+        const screenshot = await page.screenshot({ type: 'png' })
+        await browser.close()
+
+        return new Response(screenshot, {
+          headers: { 'Content-Type': 'image/png' },
+        })
+      } catch (error) {
+        console.error('Screenshot error:', error)
+        return new Response('Failed to generate screenshot', { status: 500 })
+      }
     }
 
     // Use app/artifact as the homepage for now:

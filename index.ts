@@ -9,27 +9,40 @@ import { generateCodeStream, sudoAnthropic } from './src/claude'
 import { Auth, type AuthConfig } from '@auth/core'
 import { getToken } from '@auth/core/jwt'
 import Google from '@auth/core/providers/google'
+import { unlinkSync } from 'node:fs'
 
 // Build the complete HTML for a given snippet of React code
+// Generally runs in 2-20ms
 export async function compileReact(
   componentCode: string,
   props: Record<string, any> = {}
 ) {
-  // console.log('compileReact', componentCode.slice(0, 400))
-  // Output component code to /dist/App.tsx, where main.tsx imports it
-  Bun.write('./dist/App.tsx', componentCode)
+  // Generate a unique hash for this pair of componentCode and props,
+  // to avoid race conditions between different requests
+  const hash = Bun.hash(componentCode + JSON.stringify(props))
 
-  // If props are provided, then in App.tsx, export them as a named export
-  if (Object.keys(props).length > 0) {
-    Bun.write(
-      './dist/App.tsx',
-      `${componentCode}\nexport const props = ${JSON.stringify(props)}`
-    )
-  }
+  // Write out App.tsx and main.tsx to temp files in /dist
+  await Bun.write(`./dist/App.${hash}.tsx`, componentCode)
 
+  const main = `
+  import React from 'react';
+  import ReactDOM from 'react-dom/client';
+  import App from '../dist/App.${hash}.tsx';
+
+  const props = ${JSON.stringify(props)};
+
+  const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+  root.render(
+    <React.StrictMode>
+      <App {...props} />
+    </React.StrictMode>
+  );
+  `
+  await Bun.write(`./dist/main.${hash}.tsx`, main)
+
+  // Build from the temp files
   const built = await Bun.build({
-    entrypoints: ['./app/main.tsx'],
-    outdir: './dist',
+    entrypoints: [`./dist/main.${hash}.tsx`],
     // Don't bundle stuff we importmap from esm.sh
     external: ['react', 'react-dom', '@uiw/react-textarea-code-editor'],
   })
@@ -38,6 +51,11 @@ export async function compileReact(
     throw new Error('Failed to build: ' + built.logs)
   }
   const bundled = await built.outputs[0].text()
+  const sanitized = bundled.replace(/<\/script>/g, '<\\/script>')
+
+  // Delete the temp files
+  unlinkSync(`./dist/App.${hash}.tsx`)
+  unlinkSync(`./dist/main.${hash}.tsx`)
 
   // TODO: generate importmap and css dynamically?
   const html = `
@@ -61,14 +79,10 @@ export async function compileReact(
       </head>
       <body>
         <div id="root"></div>
-        <script type="module">${bundled.replace(
-          /<\/script>/g,
-          '<\\/script>'
-        )}</script>
+        <script type="module">${sanitized}</script>
       </body>
     </html>
   `
-
   // For debugging: write the HTML to a file with a timestamp
   // Bun.write(`./dist/test-${Date.now()}.html`, html)
 

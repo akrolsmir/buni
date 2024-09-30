@@ -11,8 +11,9 @@ RUN apt-get update && apt-get install -y wget unzip
 
 # Install chrome-headless-shell
 RUN wget -q https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/120.0.6099.109/linux64/chrome-headless-shell-linux64.zip \
-    && unzip chrome-headless-shell-linux64.zip -d /usr/local \
-    && rm chrome-headless-shell-linux64.zip
+    && unzip chrome-headless-shell-linux64.zip -d /usr/local/bin \
+    && rm chrome-headless-shell-linux64.zip \
+    && chmod +x /usr/local/bin/chrome-headless-shell
 
 # Bun app lives here
 WORKDIR /app

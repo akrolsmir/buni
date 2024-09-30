@@ -295,7 +295,7 @@ Bun.serve({
       try {
         let executablePath
         if (process.env.NODE_ENV === 'production') {
-          executablePath = '/usr/local/bin/chrome-headless-shell'
+          executablePath = '/usr/local/chrome-headless-shell'
         } else {
           // For local development, try to find Chrome in common locations
           // TODO: pretty hacky. Consider using puppeteer for local dev?

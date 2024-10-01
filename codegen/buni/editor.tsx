@@ -119,8 +119,8 @@ export default function Editor(props: { initialCode?: string }) {
   }
 
   return (
-    <div className="flex flex-row gap-2">
-      <div className="w-1/2">
+    <div className="flex flex-col md:flex-row gap-2">
+      <div className="w-full md:w-1/2">
         <div className="flex items-center m-1 justify-end">
           <input
             type="checkbox"
@@ -144,15 +144,16 @@ export default function Editor(props: { initialCode?: string }) {
               backgroundColor: '#f5f5f5',
               fontFamily:
                 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+              height: '50vh',
+              maxHeight: '50vh',
             }}
           />
         ) : (
-          <iframe srcDoc={transpiled} className="w-full h-screen" />
+          <iframe srcDoc={transpiled} className="w-full h-[50vh]" />
         )}
       </div>
-      <div className="w-1/2 overflow-auto h-screen">
-        <div className="h-full">
-          {/* Horizontal toolbar with links to different sections */}
+      <div className="w-full md:w-1/2 overflow-auto h-[50vh] md:h-screen">
+        <div className="h-full flex flex-col">
           <div className="flex flex-row gap-6 m-1 mb-4">
             <button
               className="text-blue-500 text-sm hover:text-blue-700"
@@ -178,12 +179,6 @@ export default function Editor(props: { initialCode?: string }) {
             >
               Save
             </button>
-            {/* <button
-              className="text-red-500 text-sm hover:text-red-700"
-              onClick={handleDelete}
-            >
-              Delete
-            </button> */}
             <Versions
               filename={filename}
               onSelect={async (version) => {
@@ -195,7 +190,7 @@ export default function Editor(props: { initialCode?: string }) {
             />
           </div>
           {showFileBrowser && <FileBrowser files={files} />}
-          <div className="flex mr-2 my-2">
+          <div className="flex mr-2 my-2 flex-shrink-0">
             <input
               type="text"
               className="flex-grow px-2 py-1 border rounded-l"
@@ -216,31 +211,32 @@ export default function Editor(props: { initialCode?: string }) {
               {modifying ? 'Modifying...' : 'Modify with AI'}
             </button>
           </div>
-          {/* Messages */}
-          {messages.map((message) => (
-            <div key={message.message_id} className="mb-2 p-1">
-              <div className="flex items-baseline mb-1">
-                <strong className="text-lg">{message.author_id}</strong>
-                <span className="text-xs text-gray-400 ml-2">
-                  {new Date(message.created_at).toLocaleString()}
-                </span>
+          <div className="overflow-y-auto flex-grow">
+            {messages.map((message) => (
+              <div key={message.message_id} className="mb-2 p-1">
+                <div className="flex items-baseline mb-1">
+                  <strong className="text-lg">{message.author_id}</strong>
+                  <span className="text-xs text-gray-400 ml-2">
+                    {new Date(message.created_at).toLocaleString()}
+                  </span>
+                </div>
+                <p className="text-gray-700">
+                  {message.content.length > 280
+                    ? `${message.content.slice(0, 280)}...`
+                    : message.content}
+                </p>
+                {/* If message contains the string <code_diff>, then render a button to apply the diff */}
+                {message.content.includes('<code_diff>') && (
+                  <button
+                    className="px-4 py-1 bg-blue-500 text-white"
+                    onClick={() => applyDiff(message.content)}
+                  >
+                    Apply Diff
+                  </button>
+                )}
               </div>
-              <p className="text-gray-700">
-                {message.content.length > 280
-                  ? `${message.content.slice(0, 280)}...`
-                  : message.content}
-              </p>
-              {/* If message contains the string <code_diff>, then render a button to apply the diff */}
-              {message.content.includes('<code_diff>') && (
-                <button
-                  className="px-4 py-1 bg-blue-500 text-white"
-                  onClick={() => applyDiff(message.content)}
-                >
-                  Apply Diff
-                </button>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>

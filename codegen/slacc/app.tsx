@@ -1,7 +1,23 @@
 import React, { useState, useEffect } from 'react'
+import { writeMessage } from '%/slacc/db'
+
+type User = {
+  id: string
+  name: string
+  username: string
+  image: string
+}
+
+type Message = {
+  id: string
+  channel: string
+  author_id: string
+  content: string
+  created_at: string
+}
 
 function useSession() {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -20,7 +36,7 @@ function useSession() {
   return { user, loading }
 }
 
-const AuthButton = ({ user }) => {
+const AuthButton = ({ user }: { user: User }) => {
   const handleAuth = () => {
     const url = user ? '/auth/signout' : '/auth/signin'
     window.open(url, '_blank', 'width=500,height=600')
@@ -39,24 +55,33 @@ const AuthButton = ({ user }) => {
 export default function Component() {
   const { user, loading } = useSession()
   const [activeChannel, setActiveChannel] = useState('general')
-  const [messages, setMessages] = useState({
-    general: [],
-    lounge: [],
-    links: [],
-  })
+  const [messages, setMessages] = useState<Message[]>([])
+
+  useEffect(() => {
+    // const wsUrl = `ws://${window.location.host}/realtime` <= doesn't work in an iframe
+    // TODO: Replace with current URL.
+    const ws = new WebSocket(`ws://localhost:3000/realtime`)
+    // TODO: Could clean up the client interface somewhat. Ideally:
+    // const [messages, setMessages] = useRealtime('/slacc/db.sqlite', 'Messages')
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ dbPath: '/slacc/db.sqlite', table: 'Messages' }))
+    }
+    ws.onmessage = (event) => {
+      const wsMessage = JSON.parse(event.data)
+      if (wsMessage.type === 'initial' || wsMessage.type === 'update') {
+        setMessages(wsMessage.data)
+      }
+    }
+    return () => ws.close()
+  }, [])
+
   const [newMessage, setNewMessage] = useState('')
 
   const channels = ['general', 'lounge', 'links']
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      setMessages((prev) => ({
-        ...prev,
-        [activeChannel]: [
-          ...prev[activeChannel],
-          { text: newMessage, timestamp: new Date().toLocaleTimeString() },
-        ],
-      }))
+      writeMessage(activeChannel, user?.id ?? 'anon', newMessage)
       setNewMessage('')
     }
   }
@@ -112,12 +137,14 @@ export default function Component() {
       <div className="flex-grow overflow-y-auto p-4">
         <h2 className="text-lg font-semibold mb-2">#{activeChannel}</h2>
         <div className="space-y-2">
-          {messages[activeChannel].map((msg, index) => (
-            <div key={index} className="bg-white p-2 rounded shadow">
-              <p>{msg.text}</p>
-              <span className="text-xs text-gray-500">{msg.timestamp}</span>
-            </div>
-          ))}
+          {messages
+            ?.filter((msg) => msg.channel === activeChannel)
+            .map((msg, index) => (
+              <div key={msg.message_id} className="bg-white p-2 rounded shadow">
+                <p>{msg.content}</p>
+                <span className="text-xs text-gray-500">{msg.created_at}</span>
+              </div>
+            ))}
         </div>
       </div>
 
@@ -128,6 +155,11 @@ export default function Component() {
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSendMessage()
+              }
+            }}
             className="flex-grow border rounded-l p-2"
             placeholder={`Message #${activeChannel}`}
           />

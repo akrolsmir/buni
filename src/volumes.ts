@@ -6,14 +6,16 @@ import { rm } from 'fs/promises'
 const isFlySafe = !!process.env.FLY_IO
 const VOLUME_PATH = isFlySafe ? '/app/codegen' : './codegen'
 
+export function vpath(filename: string) {
+  return join(VOLUME_PATH, filename)
+}
+
 export async function writeToVolume(filename: string, content: string) {
-  const path = join(VOLUME_PATH, filename)
-  await write(path, content)
+  await write(vpath(filename), content)
 }
 
 export async function readFromVolume(filename: string) {
-  const path = join(VOLUME_PATH, filename)
-  return await file(path).text()
+  return await file(vpath(filename)).text()
 }
 
 export function listVolume() {
@@ -49,10 +51,9 @@ export function getVolumePath() {
 
 // Get the sqlite db like 'foo/db.sqlite'
 export function dbOnVolume(filename: string) {
-  return new Database(join(VOLUME_PATH, filename))
+  return new Database(vpath(filename))
 }
 
 export async function deleteFromVolume(folderName: string) {
-  const path = join(VOLUME_PATH, folderName)
-  await rm(path, { recursive: true, force: true })
+  await rm(vpath(folderName), { recursive: true, force: true })
 }

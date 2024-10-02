@@ -12,6 +12,7 @@ import Google from '@auth/core/providers/google'
 import { unlinkSync, existsSync } from 'node:fs'
 import puppeteer from 'puppeteer-core'
 import { customAlphabet } from 'nanoid'
+import { websocketHandlers, type ClientData } from './src/realtime'
 
 // Build the complete HTML for a given snippet of React code
 // Generally runs in 2-20ms
@@ -164,7 +165,7 @@ async function getSession(req: Request) {
   return await getToken({ req, secret: process.env.AUTH_SECRET })
 }
 
-Bun.serve({
+const server = Bun.serve({
   port: 3000,
   async fetch(req) {
     const url = new URL(req.url)
@@ -330,6 +331,19 @@ Bun.serve({
       })
     }
 
+    // New realtime WebSocket handler
+    if (path === 'realtime') {
+      const success = server.upgrade(req, {
+        data: {} as ClientData,
+      })
+      if (success) {
+        // Upgrade successful
+        return new Response(null, { status: 200 })
+      }
+      // Upgrade failed
+      return new Response('WebSocket upgrade failed', { status: 400 })
+    }
+
     if (path === 'screenshot') {
       const targetUrl = url.searchParams.get('url')
       if (!targetUrl) {
@@ -381,6 +395,7 @@ Bun.serve({
     // Use app/artifact as the homepage for now:
     return compileReact(await Bun.file('./app/artifact.tsx').text())
   },
+  websocket: websocketHandlers,
 })
 
 console.log('========== Running on http://localhost:3000 ==========')

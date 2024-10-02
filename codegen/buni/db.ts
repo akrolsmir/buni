@@ -25,12 +25,15 @@ CREATE TABLE IF NOT EXISTS Messages (
 CREATE TABLE IF NOT EXISTS Users (
     user_id TEXT PRIMARY KEY,
     username TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    avatar_url TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Seed users
-INSERT OR IGNORE INTO Users (user_id, username) VALUES ('claude', 'Claude');
-INSERT OR IGNORE INTO Users (user_id, username) VALUES ('austin', 'Austin');
+-- INSERT OR IGNORE INTO Users (user_id, username) VALUES ('claude', 'Claude');
+-- INSERT OR IGNORE INTO Users (user_id, username) VALUES ('austin', 'Austin');
 
 
 CREATE TABLE IF NOT EXISTS Versions (

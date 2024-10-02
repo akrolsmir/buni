@@ -172,6 +172,12 @@ export default function Editor(props: { initialCode?: string }) {
               >
                 Delete
               </button> */}
+              {/* <button
+                className="text-blue-500 text-sm hover:text-blue-700"
+                onClick={db}
+              >
+                Init DB
+              </button> */}
               <Versions
                 filename={filename}
                 onSelect={async (version) => {

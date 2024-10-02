@@ -10,7 +10,7 @@ type User = {
 }
 
 type Message = {
-  id: string
+  message_id: string
   channel: string
   author_id: string
   content: string
@@ -76,9 +76,11 @@ export default function Component() {
   }, [])
 
   useEffect(() => {
-    // const wsUrl = `ws://${window.location.host}/realtime` <= doesn't work in an iframe
-    // TODO: Replace with current URL.
-    const ws = new WebSocket(`ws://localhost:3000/realtime`)
+    // In an iframe, use ancestorOrigins to get the parent's origin
+    const host =
+      window.location.host ||
+      window.location.ancestorOrigins[0].replace(/^https?:\/\//, '')
+    const ws = new WebSocket(`ws://${host}/realtime`)
     // TODO: Could clean up the client interface somewhat. Ideally:
     // const [messages, setMessages] = useRealtime('/slacc/db.sqlite', 'Messages')
     ws.onopen = () => {
@@ -158,7 +160,7 @@ export default function Component() {
           {messages
             ?.filter((msg) => msg.channel === activeChannel)
             .map((msg, index) => (
-              <div key={msg.id} className="bg-white p-2 rounded shadow">
+              <div key={msg.message_id} className="bg-white p-2 rounded shadow">
                 <div className="flex">
                   <img
                     src={usersMap.get(msg.author_id)?.image}

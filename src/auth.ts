@@ -6,11 +6,17 @@ import { customAlphabet } from 'nanoid'
 
 export const AUTH_CONFIG: AuthConfig = {
   providers: [
-    Google({
-      // TODO: Separate auth variables for dev vs prod
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
+    Google(
+      process.env.NODE_ENV === 'production'
+        ? {
+            clientId: process.env.GOOGLE_PROD_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_PROD_CLIENT_SECRET,
+          }
+        : {
+            clientId: process.env.GOOGLE_LOCAL_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_LOCAL_CLIENT_SECRET,
+          }
+    ),
   ],
   secret: process.env.AUTH_SECRET,
   trustHost: true,

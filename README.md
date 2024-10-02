@@ -12,6 +12,8 @@ To run:
 bun dev
 ```
 
+Set secrets at https://fly.io/apps/buni/secrets
+
 ## About this app
 
 /src - Regular code, executed by our server

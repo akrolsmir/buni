@@ -6,164 +6,12 @@ import {
   deleteFromVolume,
 } from './src/volumes'
 import { generateCodeStream, sudoAnthropic } from './src/claude'
-import { Auth, type AuthConfig } from '@auth/core'
-import { getToken } from '@auth/core/jwt'
-import Google from '@auth/core/providers/google'
-import { unlinkSync, existsSync } from 'node:fs'
+import { Auth } from '@auth/core'
+import { existsSync } from 'node:fs'
 import puppeteer from 'puppeteer-core'
-import { customAlphabet } from 'nanoid'
 import { websocketHandlers, type ClientData } from './src/realtime'
-
-// Build the complete HTML for a given snippet of React code
-// Generally runs in 2-20ms
-export async function compileReact(
-  componentCode: string,
-  props: Record<string, any> = {}
-) {
-  // Generate a unique hash for this pair of componentCode and props,
-  // to avoid race conditions between different requests
-  const hash = Bun.hash(componentCode + JSON.stringify(props))
-
-  // Write out App.tsx and main.tsx to temp files in /dist
-  await Bun.write(`./dist/App.${hash}.tsx`, componentCode)
-
-  const main = `
-  import React from 'react';
-  import ReactDOM from 'react-dom/client';
-  import App from '../dist/App.${hash}.tsx';
-
-  const props = ${JSON.stringify(props)};
-
-  const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-  root.render(
-    <React.StrictMode>
-      <App {...props} />
-    </React.StrictMode>
-  );
-  `
-  await Bun.write(`./dist/main.${hash}.tsx`, main)
-
-  // Build from the temp files
-  const built = await Bun.build({
-    entrypoints: [`./dist/main.${hash}.tsx`],
-    // Don't bundle stuff we importmap from esm.sh
-    external: ['react', 'react-dom', '@uiw/react-textarea-code-editor'],
-  })
-  // Delete the temp files
-  unlinkSync(`./dist/App.${hash}.tsx`)
-  unlinkSync(`./dist/main.${hash}.tsx`)
-
-  if (!built.success) {
-    console.error(built.logs)
-    throw new Error('Failed to build: ' + built.logs)
-  }
-  const bundled = await built.outputs[0].text()
-  const sanitized = bundled.replace(/<\/script>/g, '<\\/script>')
-
-  // TODO: generate importmap and css dynamically?
-  const html = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script type="importmap">
-          {
-            "imports": {
-              "react": "https://esm.sh/react@18.3.1",
-              "react/jsx-dev-runtime": "https://esm.sh/react@18.3.1/jsx-dev-runtime",
-              "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
-              "react-dom": "https://esm.sh/react-dom@18.3.1",
-              "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-              "@uiw/react-textarea-code-editor": "https://esm.sh/@uiw/react-textarea-code-editor@3.0.2?external=react,react-dom"
-            }
-          }
-        </script>
-        <link rel="stylesheet" href="https://esm.sh/@uiw/react-textarea-code-editor/dist.css" />
-      </head>
-      <body>
-        <div id="root"></div>
-        <script type="module">${sanitized}</script>
-      </body>
-    </html>
-  `
-  // For debugging: write the HTML to a file with a timestamp
-  // Bun.write(`./dist/test-${Date.now()}.html`, html)
-
-  return new Response(html, {
-    headers: { 'Content-Type': 'text/html' },
-  })
-}
-
-const authConfig: AuthConfig = {
-  providers: [
-    Google({
-      // TODO: Separate auth variables for dev vs prod
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-  ],
-  secret: process.env.AUTH_SECRET,
-  trustHost: true,
-  // debug: true,
-  callbacks: {
-    // Adding the access token means that you can make future API calls
-    // to eg Google as the user. Lasts 3600s = 1h
-    async jwt({ token, account, user }) {
-      // In a single SQL query, look up user by email, creating them if not found
-      if (account) {
-        // For now, directly access /buni/db.sqlite.
-        // !!! bad practice to directly modify userspace db from the platform !!!
-        // Probably should migrate Users to a platform db
-        // TODO: also refactor this stuff to src/auth.ts
-        const buniDb = dbOnVolume('/buni/db.sqlite')
-        const randomId = customAlphabet(
-          'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
-          8
-        )
-        const sanitize = (s: string) =>
-          s.toLocaleLowerCase().replace(/[^a-z0-9]/g, '-')
-        const user_id = randomId()
-        const params = {
-          $user_id: user_id,
-          $email: user.email as string,
-          $username: sanitize(user.name as string),
-          $name: user.name as string,
-          $avatar_url: user.image as string,
-        }
-
-        const newUser = buniDb
-          .query(
-            'INSERT INTO Users (user_id, email, username, name, avatar_url) VALUES ($user_id, $email, $username, $name, $avatar_url) ON CONFLICT (email) DO NOTHING RETURNING *'
-          )
-          .all(params)
-
-        // accessToken is the Google OAuth access token; not currently used
-        // token.accessToken = account.access_token
-      }
-      return token
-    },
-    // This callback executes on /auth/session
-    async session({ session, token }) {
-      // Look up user_id by email
-      const buniDb = dbOnVolume('/buni/db.sqlite')
-      const user = buniDb
-        .query('SELECT user_id, username FROM Users WHERE email = $email')
-        .get({ $email: session.user.email }) as {
-        user_id: string
-        username: string
-      }
-      session.user.id = user.user_id
-      session.user.username = user.username
-      return session
-    },
-  },
-}
-
-async function getSession(req: Request) {
-  return await getToken({ req, secret: process.env.AUTH_SECRET })
-}
+import { compileReact } from 'src/render'
+import { AUTH_CONFIG } from 'src/auth'
 
 const server = Bun.serve({
   port: 3000,
@@ -177,7 +25,7 @@ const server = Bun.serve({
       // /auth/signin
       // /auth/signout
       // /auth/session
-      return await Auth(req, authConfig)
+      return await Auth(req, AUTH_CONFIG)
     }
 
     // To get user info:

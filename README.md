@@ -25,8 +25,9 @@ compileReact takes in code as a string, and generates a single file HTML compone
 
 - Fast: Minimize latency, fast feedback loops rule the world
 - Simple: Use clear primitives that are easy to understand, for humans and LLMs
+- Open: Everything is visible, scrapeable, forkable, interoperable, exportable
 - Debuggable: When something goes wrong, make it easy to see
-- Open: Everything is visible, scrapeable, interoperable, forkable
+- Interop: Leverage existing best-in-class tools (React, bun), libraries (npm), workflows (git, Cursor)
 
 ## TODO
 
@@ -61,8 +62,6 @@ compileReact takes in code as a string, and generates a single file HTML compone
   - Or get buni to build our own >.>
 - Mobile view? (maybe the apps are mobile by default cuz screen)
 - Social: really good database
-- Support admin actions in chat interface?
-  - E.g. delete app, publish, etc?
 
 ### Quick wins to try
 
@@ -70,9 +69,19 @@ compileReact takes in code as a string, and generates a single file HTML compone
 - Export app to single HTML to self-host?
 - Instead of having a UI toolbar, ask Claude to do stuff like "export"?
   - Kind of like "--help" in a CLI
+  - E.g. delete app, publish, etc?
 - Build out chat, comments
 - Store this README directly inside Buni
 - Add in a decent UI library (ShadCN?)
+- Native Discord integration for game gen
+  - https://discord.com/developers/docs/activities/overview#embedded-app-sdk
+- Speed up long file diffs by not rewriting the whole thing?
+
+### Medium term roadmap (?)
+
+- Month 1: Platform, editor
+- Month 2: Agent infra, integrations
+- Month 3: Economics, community/governance?
 
 ### Test apps
 
@@ -97,7 +106,7 @@ compileReact takes in code as a string, and generates a single file HTML compone
 - [x] Try importing a standard React component eg monaco-editor for editor.tsx
 - [x] Set up editor to dynamically load, eg /app/counter/editor (or maybe /app/editor/counter)
 - [x] Generate code from Claude Sonnet
-- [ ] Store code in sqlite db
+- [x] Store code in sqlite db
 - [ ] Support async components
 - [ ] How should components reference external code?
   - Helper functions defined elsewhere? (Where?)

@@ -114,7 +114,7 @@ export async function writeMessage(
   return res
 }
 
-type Message = {
+export type Message = {
   message_id: string
   app_id: string
   author_id: string

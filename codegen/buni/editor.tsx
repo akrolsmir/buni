@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 // Can also directly import esm.sh; make sure to exclude react
-import * as DropdownMenu from 'https://esm.sh/@radix-ui/react-dropdown-menu@2.1.1?external=react,react-dom'
 // Import files from codegen/* as %/*
 // TODO: Consider making relative imports work with ./
 import {
   backupAndSaveCode,
-  clearMessages,
   initDB,
   listMessages,
-  listVersions,
   loadVersion,
   writeMessage,
   deleteApp,
+  type Message,
 } from '%/buni/db'
 // WARNING: this is a dynamic, un-git'd import
 import FileBrowser from '%/browser/app'
@@ -97,17 +95,6 @@ export default function Editor(props: { initialCode?: string }) {
   }
 
   const [showCode, setShowCode] = React.useState(false)
-  const [messages, setMessages] = React.useState<Message[]>([])
-  // TODO: Eventually stream messages from server instead of polling
-  React.useEffect(() => {
-    const fetchMessages = () => {
-      listMessages(appName).then(setMessages)
-    }
-    // Fetch messages now, and then every 2 seconds
-    fetchMessages()
-    const intervalId = setInterval(fetchMessages, 2000)
-    return () => clearInterval(intervalId)
-  }, [appName])
 
   async function applyDiff(content: string) {
     setModifying(true)
@@ -216,33 +203,54 @@ export default function Editor(props: { initialCode?: string }) {
               {modifying ? 'Modifying...' : 'Modify with AI'}
             </button>
           </div>
-          {/* Messages */}
-          {messages.map((message) => (
-            <div key={message.message_id} className="mb-2 p-1">
-              <div className="flex items-baseline mb-1">
-                <strong className="text-lg">{message.author_id}</strong>
-                <span className="text-xs text-gray-400 ml-2">
-                  {new Date(message.created_at).toLocaleString()}
-                </span>
-              </div>
-              <p className="text-gray-700">
-                {message.content.length > 280
-                  ? `${message.content.slice(0, 280)}...`
-                  : message.content}
-              </p>
-              {/* If message contains the string <code_diff>, then render a button to apply the diff */}
-              {message.content.includes('<code_diff>') && (
-                <button
-                  className="px-4 py-1 bg-blue-500 text-white"
-                  onClick={() => applyDiff(message.content)}
-                >
-                  Apply Diff
-                </button>
-              )}
-            </div>
-          ))}
+          <Messages appName={appName} onApplyDiff={applyDiff} />
         </div>
       </div>
     </div>
+  )
+}
+
+function Messages(props: {
+  appName: string
+  onApplyDiff: (content: string) => void
+}) {
+  const { appName, onApplyDiff } = props
+  const [messages, setMessages] = React.useState<Message[]>([])
+
+  React.useEffect(() => {
+    const fetchMessages = () => {
+      listMessages(appName).then(setMessages)
+    }
+    fetchMessages()
+    const intervalId = setInterval(fetchMessages, 2000)
+    return () => clearInterval(intervalId)
+  }, [appName])
+
+  return (
+    <>
+      {messages.map((message) => (
+        <div key={message.message_id} className="mb-2 p-1">
+          <div className="flex items-baseline mb-1">
+            <strong className="text-lg">{message.author_id}</strong>
+            <span className="text-xs text-gray-400 ml-2">
+              {new Date(message.created_at).toLocaleString()}
+            </span>
+          </div>
+          <p className="text-gray-700">
+            {message.content.length > 280
+              ? `${message.content.slice(0, 280)}...`
+              : message.content}
+          </p>
+          {message.content.includes('<code_diff>') && (
+            <button
+              className="px-4 py-1 bg-blue-500 text-white"
+              onClick={() => onApplyDiff(message.content)}
+            >
+              Apply Diff
+            </button>
+          )}
+        </div>
+      ))}
+    </>
   )
 }

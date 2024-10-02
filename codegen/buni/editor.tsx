@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 // Can also directly import esm.sh; make sure to exclude react
@@ -106,8 +107,8 @@ export default function Editor(props: { initialCode?: string }) {
   }
 
   return (
-    <div className="flex flex-row gap-2">
-      <div className="w-1/2">
+    <div className="flex flex-col md:flex-row gap-2">
+      <div className="w-full md:w-1/2">
         <div className="flex items-center m-1 justify-end">
           <input
             type="checkbox"
@@ -134,10 +135,10 @@ export default function Editor(props: { initialCode?: string }) {
             }}
           />
         ) : (
-          <iframe srcDoc={transpiled} className="w-full h-screen" />
+          <iframe srcDoc={transpiled} className="w-full h-[50vh] md:h-screen" />
         )}
       </div>
-      <div className="w-1/2 overflow-auto h-screen">
+      <div className="w-full md:w-1/2 overflow-auto h-[50vh] md:h-screen">
         <div className="h-full">
           {/* Horizontal toolbar with links to different sections */}
           <div className="flex flex-row gap-6 m-1 mb-4">

@@ -4,6 +4,7 @@ const randomId = customAlphabet(
   8
 )
 
+// TODO: Clean up by replacing eg "app_id" with "id"
 const INIT_SQL = `
 CREATE TABLE IF NOT EXISTS Apps (
     app_id TEXT PRIMARY KEY,
@@ -190,4 +191,18 @@ export async function deleteApp(app_name: string) {
   await query(`DELETE FROM Apps WHERE app_name = $app_name`, {
     $app_name: app_name,
   })
+}
+
+type DbUser = {
+  user_id: string
+  username: string
+  email: string
+  name: string
+  avatar_url: string
+  created_at: string
+}
+
+export async function listUsers() {
+  const res = await query('SELECT * FROM Users ORDER BY created_at DESC')
+  return res as DbUser[]
 }

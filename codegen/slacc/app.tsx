@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { writeMessage } from '%/slacc/db'
+import { listUsers } from '%/buni/db'
 
 type User = {
   id: string
@@ -56,6 +57,23 @@ export default function Component() {
   const { user, loading } = useSession()
   const [activeChannel, setActiveChannel] = useState('general')
   const [messages, setMessages] = useState<Message[]>([])
+  // Map of user_id to User
+  const [usersMap, setUsersMap] = useState<Map<string, User>>(new Map())
+
+  useEffect(() => {
+    listUsers().then((users) => {
+      const usersMap = new Map<string, User>()
+      for (const user of users) {
+        usersMap.set(user.user_id, {
+          id: user.user_id,
+          name: user.name,
+          username: user.username,
+          image: user.avatar_url,
+        })
+      }
+      setUsersMap(usersMap)
+    })
+  }, [])
 
   useEffect(() => {
     // const wsUrl = `ws://${window.location.host}/realtime` <= doesn't work in an iframe
@@ -140,9 +158,25 @@ export default function Component() {
           {messages
             ?.filter((msg) => msg.channel === activeChannel)
             .map((msg, index) => (
-              <div key={msg.message_id} className="bg-white p-2 rounded shadow">
-                <p>{msg.content}</p>
-                <span className="text-xs text-gray-500">{msg.created_at}</span>
+              <div key={msg.id} className="bg-white p-2 rounded shadow">
+                <div className="flex">
+                  <img
+                    src={usersMap.get(msg.author_id)?.image}
+                    alt={usersMap.get(msg.author_id)?.name}
+                    className="w-8 h-8 rounded-full mr-2"
+                  />
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">
+                        {usersMap.get(msg.author_id)?.name ?? 'anon'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(msg.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="mt-1">{msg.content}</p>
+                  </div>
+                </div>
               </div>
             ))}
         </div>

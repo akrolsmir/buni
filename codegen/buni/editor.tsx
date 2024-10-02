@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 // Can also directly import esm.sh; make sure to exclude react
@@ -139,72 +138,76 @@ export default function Editor(props: { initialCode?: string }) {
         )}
       </div>
       <div className="w-full md:w-1/2 overflow-auto h-[50vh] md:h-screen">
-        <div className="h-full">
-          {/* Horizontal toolbar with links to different sections */}
-          <div className="flex flex-row gap-6 m-1 mb-4">
-            <button
-              className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={() => setShowFileBrowser(!showFileBrowser)}
-            >
-              Files
-            </button>
-            <button
-              className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={openPreview}
-            >
-              Preview
-            </button>
-            <button
-              className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={copyExport}
-            >
-              Export
-            </button>
-            <button
-              className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={saveCode}
-            >
-              Save
-            </button>
-            {/* <button
-              className="text-red-500 text-sm hover:text-red-700"
-              onClick={handleDelete}
-            >
-              Delete
-            </button> */}
-            <Versions
-              filename={filename}
-              onSelect={async (version) => {
-                const newCode = await loadVersion(filename, version)
-                setCode(newCode)
-                alert('Loaded version ' + version)
-                // TODO: reload versions
-              }}
-            />
+        <div className="h-full flex flex-col">
+          <div className="sticky top-0 bg-white z-10">
+            {/* Horizontal toolbar with links to different sections */}
+            <div className="flex flex-row gap-6 m-1 mb-4">
+              <button
+                className="text-blue-500 text-sm hover:text-blue-700"
+                onClick={() => setShowFileBrowser(!showFileBrowser)}
+              >
+                Files
+              </button>
+              <button
+                className="text-blue-500 text-sm hover:text-blue-700"
+                onClick={openPreview}
+              >
+                Preview
+              </button>
+              <button
+                className="text-blue-500 text-sm hover:text-blue-700"
+                onClick={copyExport}
+              >
+                Export
+              </button>
+              <button
+                className="text-blue-500 text-sm hover:text-blue-700"
+                onClick={saveCode}
+              >
+                Save
+              </button>
+              {/* <button
+                className="text-red-500 text-sm hover:text-red-700"
+                onClick={handleDelete}
+              >
+                Delete
+              </button> */}
+              <Versions
+                filename={filename}
+                onSelect={async (version) => {
+                  const newCode = await loadVersion(filename, version)
+                  setCode(newCode)
+                  alert('Loaded version ' + version)
+                  // TODO: reload versions
+                }}
+              />
+            </div>
+            <div className="flex mr-2 my-2">
+              <input
+                type="text"
+                className="flex-grow px-2 py-1 border rounded-l"
+                placeholder="What would you like to change?"
+                value={modify}
+                onChange={(e) => setModify(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleModify()
+                  }
+                }}
+              />
+              <button
+                className="px-4 py-1 bg-blue-500 text-white rounded-r disabled:opacity-50"
+                onClick={handleModify}
+                disabled={modifying}
+              >
+                {modifying ? 'Modifying...' : 'Modify with AI'}
+              </button>
+            </div>
           </div>
-          {showFileBrowser && <FileBrowser files={files} />}
-          <div className="flex mr-2 my-2">
-            <input
-              type="text"
-              className="flex-grow px-2 py-1 border rounded-l"
-              placeholder="What would you like to change?"
-              value={modify}
-              onChange={(e) => setModify(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleModify()
-                }
-              }}
-            />
-            <button
-              className="px-4 py-1 bg-blue-500 text-white rounded-r disabled:opacity-50"
-              onClick={handleModify}
-              disabled={modifying}
-            >
-              {modifying ? 'Modifying...' : 'Modify with AI'}
-            </button>
+          <div className="flex-grow overflow-auto">
+            {showFileBrowser && <FileBrowser files={files} />}
+            <Messages appName={appName} onApplyDiff={applyDiff} />
           </div>
-          <Messages appName={appName} onApplyDiff={applyDiff} />
         </div>
       </div>
     </div>
@@ -217,6 +220,18 @@ function Messages(props: {
 }) {
   const { appName, onApplyDiff } = props
   const [messages, setMessages] = React.useState<Message[]>([])
+  const [expandedDiffs, setExpandedDiffs] = React.useState<{
+    [key: string]: boolean
+  }>({})
+
+  function removeBlock(text: string, tag: string) {
+    const start = text.indexOf(`<${tag}>`)
+    const end = text.lastIndexOf(`</${tag}>`) + `</${tag}>`.length
+    if (start !== -1 && end !== -1) {
+      return text.slice(0, start) + text.slice(end)
+    }
+    return text
+  }
 
   React.useEffect(() => {
     const fetchMessages = () => {
@@ -228,7 +243,7 @@ function Messages(props: {
   }, [appName])
 
   return (
-    <>
+    <div className="flex flex-col">
       {messages.map((message) => (
         <div key={message.message_id} className="mb-2 p-1">
           <div className="flex items-baseline mb-1">
@@ -237,21 +252,46 @@ function Messages(props: {
               {new Date(message.created_at).toLocaleString()}
             </span>
           </div>
-          <p className="text-gray-700">
-            {message.content.length > 280
-              ? `${message.content.slice(0, 280)}...`
-              : message.content}
-          </p>
+          <div className="text-gray-700">
+            <p>{removeBlock(message.content, 'code_diff')}</p>
+          </div>
           {message.content.includes('<code_diff>') && (
-            <button
-              className="px-4 py-1 bg-blue-500 text-white"
-              onClick={() => onApplyDiff(message.content)}
-            >
-              Apply Diff
-            </button>
+            <div className="flex flex-row gap-2">
+              <button
+                className="px-2 py-1 bg-gray-200 text-sm"
+                onClick={() =>
+                  setExpandedDiffs((prev) => ({
+                    ...prev,
+                    [message.message_id]: !prev[message.message_id],
+                  }))
+                }
+              >
+                {expandedDiffs[message.message_id] ? 'Hide' : 'Show'} Diff
+              </button>
+              <button
+                className="px-2 py-1 bg-blue-100 text-sm"
+                onClick={() => onApplyDiff(message.content)}
+              >
+                Apply
+              </button>
+            </div>
+          )}
+
+          {expandedDiffs[message.message_id] && (
+            <CodeEditor
+              value={extractBlock(message.content, 'code_diff')}
+              language="diff"
+              readOnly
+              padding={10}
+              style={{
+                backgroundColor: '#f5f5f5',
+                fontFamily:
+                  'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+              }}
+            />
           )}
         </div>
       ))}
-    </>
+    </div>
   )
 }

@@ -70,7 +70,7 @@ export async function modifyCode(code: string, request: string) {
 // Extract a block of text from between <tag> and </tag>
 export function extractBlock(text: string, tag: string) {
   const start = text.indexOf(`<${tag}>`) + `<${tag}>`.length
-  const end = text.indexOf(`</${tag}>`)
+  const end = text.lastIndexOf(`</${tag}>`)
   return start !== -1 && end !== -1 ? text.slice(start, end) : ''
 }
 

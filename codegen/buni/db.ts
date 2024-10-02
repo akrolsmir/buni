@@ -80,6 +80,8 @@ export async function createApp(app: {
       $description: app.description,
     }
   )
+  // Also add an initial message to the chat
+  await writeMessage(app.app_name, app.creator_id, app.description)
   return app_id
 }
 

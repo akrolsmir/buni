@@ -21,29 +21,11 @@ const server = Bun.serve({
 
     // Handle authentication
     if (path.startsWith('auth/')) {
-      console.log('Auth request cookies:', req.headers.get('cookie'))
-
-      // in prod, I'm seeing missingCSRF....
-      // https://github.com/nextauthjs/next-auth/blob/main/packages/core/src/lib/actions/callback/oauth/csrf-token.ts#L26 is where csrfToken gets validated
-      // csrfToken may have been included as part of this post request; log it:
-
       let newReq = req
       if (req.headers.get('x-forwarded-proto') === 'https') {
         // If fly rewrote the URL to http, rewrite it to https for AuthJS
         newReq = new Request(req.url.replace(/^http:/, 'https:'), req)
-
-        console.log('newReq cookies:', newReq.headers.get('cookie'))
       }
-
-      // try {
-      //   const clonedReq = req.clone()
-      //   console.log('clonedReq', await clonedReq.formData())
-      //   console.log('req', await req.formData())
-      //   console.log('req.url', req.url)
-      // } catch (error) {
-      //   // console.error('Error logging form data:', error)
-      // }
-
       // Supported routes for client apps to call:
       // /auth/signin
       // /auth/signout

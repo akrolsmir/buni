@@ -21,6 +21,8 @@ const server = Bun.serve({
 
     // Handle authentication
     if (path.startsWith('auth/')) {
+      console.log('req url', req.url)
+      console.log('auth headers', req.headers)
       // Supported routes for client apps to call:
       // /auth/signin
       // /auth/signout

@@ -21,13 +21,16 @@ const server = Bun.serve({
 
     // Handle authentication
     if (path.startsWith('auth/')) {
-      console.log('req url', req.url)
-      console.log('auth headers', req.headers)
+      let newReq = req
+      if (req.headers.get('x-forwarded-proto') === 'https') {
+        // If fly rewrote the URL to http, rewrite it to https for AuthJS
+        newReq = new Request(req.url.replace(/^http:/, 'https:'), req)
+      }
       // Supported routes for client apps to call:
       // /auth/signin
       // /auth/signout
       // /auth/session
-      return await Auth(req, AUTH_CONFIG)
+      return await Auth(newReq, AUTH_CONFIG)
     }
 
     // To get user info:

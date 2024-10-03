@@ -156,13 +156,17 @@ export default function Component() {
       </div>
 
       {/* Message area */}
-      <div className="flex-grow overflow-y-auto p-4">
-        <h2 className="text-lg font-semibold mb-2">#{activeChannel}</h2>
-        <div className="space-y-2">
+      <div className="flex-grow overflow-y-auto p-4 flex flex-col-reverse bg-white ">
+        <div className="space-y-reverse flex flex-col-reverse ">
           {messages
             ?.filter((msg) => msg.channel === activeChannel)
+            .sort(
+              (a, b) =>
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime()
+            )
             .map((msg, index) => (
-              <div key={msg.message_id} className="bg-white p-2 rounded shadow">
+              <div key={msg.message_id} className="p-1 px-2">
                 <div className="flex">
                   <img
                     src={usersMap.get(msg.author_id)?.image}
@@ -174,11 +178,11 @@ export default function Component() {
                       <span className="font-semibold">
                         {usersMap.get(msg.author_id)?.name ?? 'anon'}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-300">
                         {new Date(msg.created_at).toLocaleString()}
                       </span>
                     </div>
-                    <p className="mt-1">{msg.content}</p>
+                    <p className="my-1">{msg.content}</p>
                   </div>
                 </div>
               </div>

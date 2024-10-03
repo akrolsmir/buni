@@ -77,10 +77,12 @@ export default function Component() {
 
   useEffect(() => {
     // In an iframe, use ancestorOrigins to get the parent's origin
-    const host =
-      window.location.host ||
-      window.location.ancestorOrigins[0].replace(/^https?:\/\//, '')
-    const ws = new WebSocket(`ws://${host}/realtime`)
+    const origin = window.location.host
+      ? window.location.origin
+      : window.location.ancestorOrigins[0]
+    const host = origin.replace(/^https?:\/\//, '')
+    const wsProto = origin.startsWith('https') ? 'wss' : 'ws'
+    const ws = new WebSocket(`${wsProto}://${host}/realtime`)
     // TODO: Could clean up the client interface somewhat. Ideally:
     // const [messages, setMessages] = useRealtime('/slacc/db.sqlite', 'Messages')
     ws.onopen = () => {

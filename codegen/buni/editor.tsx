@@ -16,13 +16,14 @@ import {
 import FileBrowser from '%/browser/app'
 import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
 import Versions from '%/buni/versions'
+import { useRealtime } from '%/buni/use-realtime'
 
 const DEFAULT_CODE = `const App = () => { return <h1>Hello World</h1> }; export default App;`
 
 export default function Editor(props: { initialCode?: string }) {
-  const [code, setCode] = React.useState(props.initialCode ?? DEFAULT_CODE)
-  const [transpiled, setTranspiled] = React.useState('')
-  const [showFileBrowser, setShowFileBrowser] = React.useState(false)
+  const [code, setCode] = useState(props.initialCode ?? DEFAULT_CODE)
+  const [transpiled, setTranspiled] = useState('')
+  const [showFileBrowser, setShowFileBrowser] = useState(false)
   const [files, setFiles] = useState([])
 
   useEffect(() => {
@@ -34,7 +35,7 @@ export default function Editor(props: { initialCode?: string }) {
 
   // Use the /transpile service to transpile this.
   // TODO: ideally, this code could directly link the transpilation code rather than doing another server<>client round trip
-  React.useEffect(() => {
+  useEffect(() => {
     // Base64 encode the code
     const encodedCode = encodeURIComponent(code)
     fetch('/transpile', {
@@ -48,8 +49,8 @@ export default function Editor(props: { initialCode?: string }) {
       .then((text) => setTranspiled(text))
   }, [code])
 
-  const [modify, setModify] = React.useState('')
-  const [modifying, setModifying] = React.useState(false)
+  const [modify, setModify] = useState('')
+  const [modifying, setModifying] = useState(false)
   const handleModify = async () => {
     setModifying(true)
 
@@ -94,7 +95,7 @@ export default function Editor(props: { initialCode?: string }) {
     await initDB()
   }
 
-  const [showCode, setShowCode] = React.useState(false)
+  const [showCode, setShowCode] = useState(false)
 
   async function applyDiff(content: string) {
     setModifying(true)
@@ -225,8 +226,12 @@ function Messages(props: {
   onApplyDiff: (content: string) => void
 }) {
   const { appName, onApplyDiff } = props
-  const [messages, setMessages] = React.useState<Message[]>([])
-  const [expandedDiffs, setExpandedDiffs] = React.useState<{
+  const [messages, setMessages] = useRealtime<Message>({
+    dbPath: '/buni/db.sqlite',
+    table: 'Messages',
+    query: `SELECT * FROM Messages WHERE app_id = (SELECT app_id FROM Apps WHERE app_name = '${appName}')`,
+  })
+  const [expandedDiffs, setExpandedDiffs] = useState<{
     [key: string]: boolean
   }>({})
 
@@ -238,15 +243,6 @@ function Messages(props: {
     }
     return text
   }
-
-  React.useEffect(() => {
-    const fetchMessages = () => {
-      listMessages(appName).then(setMessages)
-    }
-    fetchMessages()
-    const intervalId = setInterval(fetchMessages, 2000)
-    return () => clearInterval(intervalId)
-  }, [appName])
 
   return (
     <div className="flex flex-col">

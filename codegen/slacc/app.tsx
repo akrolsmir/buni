@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { writeMessage } from '%/slacc/db'
 import { listUsers } from '%/buni/db'
+import { useRealtime } from '%/buni/use-realtime'
 
 type User = {
   id: string
@@ -56,7 +57,10 @@ const AuthButton = ({ user }: { user: User }) => {
 export default function Component() {
   const { user, loading } = useSession()
   const [activeChannel, setActiveChannel] = useState('general')
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useRealtime<Message>({
+    dbPath: '/slacc/db.sqlite',
+    table: 'Messages',
+  })
   // Map of user_id to User
   const [usersMap, setUsersMap] = useState<Map<string, User>>(new Map())
 
@@ -73,28 +77,6 @@ export default function Component() {
       }
       setUsersMap(usersMap)
     })
-  }, [])
-
-  useEffect(() => {
-    // In an iframe, use ancestorOrigins to get the parent's origin
-    const origin = window.location.host
-      ? window.location.origin
-      : window.location.ancestorOrigins[0]
-    const host = origin.replace(/^https?:\/\//, '')
-    const wsProto = origin.startsWith('https') ? 'wss' : 'ws'
-    const ws = new WebSocket(`${wsProto}://${host}/realtime`)
-    // TODO: Could clean up the client interface somewhat. Ideally:
-    // const [messages, setMessages] = useRealtime('/slacc/db.sqlite', 'Messages')
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ dbPath: '/slacc/db.sqlite', table: 'Messages' }))
-    }
-    ws.onmessage = (event) => {
-      const wsMessage = JSON.parse(event.data)
-      if (wsMessage.type === 'initial' || wsMessage.type === 'update') {
-        setMessages(wsMessage.data)
-      }
-    }
-    return () => ws.close()
   }, [])
 
   const [newMessage, setNewMessage] = useState('')

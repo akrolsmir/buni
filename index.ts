@@ -21,7 +21,6 @@ const server = Bun.serve({
 
     // Handle authentication
     if (path.startsWith('auth/')) {
-      console.log('Auth request headers:', req.headers)
       console.log('Auth request cookies:', req.headers.get('cookie'))
 
       // in prod, I'm seeing missingCSRF....
@@ -33,18 +32,17 @@ const server = Bun.serve({
         // If fly rewrote the URL to http, rewrite it to https for AuthJS
         newReq = new Request(req.url.replace(/^http:/, 'https:'), req)
 
-        console.log('newReq headers:', newReq.headers)
         console.log('newReq cookies:', newReq.headers.get('cookie'))
-
-        try {
-          const clonedReq = req.clone()
-          console.log('clonedReq', await clonedReq.formData())
-          console.log('req', await req.formData())
-          console.log('req.url', req.url)
-        } catch (error) {
-          // console.error('Error logging form data:', error)
-        }
       }
+
+      // try {
+      //   const clonedReq = req.clone()
+      //   console.log('clonedReq', await clonedReq.formData())
+      //   console.log('req', await req.formData())
+      //   console.log('req.url', req.url)
+      // } catch (error) {
+      //   // console.error('Error logging form data:', error)
+      // }
 
       // Supported routes for client apps to call:
       // /auth/signin

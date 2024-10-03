@@ -73,6 +73,20 @@ export const AUTH_CONFIG: AuthConfig = {
       return session
     },
   },
+  cookies: {
+    csrfToken: {
+      name: 'authjs.csrf-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
+  theme: {
+    logo: 'https://manifund.org/Manifox.png',
+  },
 }
 
 async function getSession(req: Request) {

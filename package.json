@@ -26,6 +26,7 @@
     "push-fly-volume:upload": "expect -c 'spawn fly ssh sftp shell; expect \"»\"; send \"put ./codegen_backup.tar.gz /tmp/codegen_backup.tar.gz\\r\"; expect \"»\"; send \"\\x03\"; expect eof'",
     "push-fly-volume:update": "expect -c 'spawn fly ssh console; expect \"#\"; send \"find /app/codegen -mindepth 1 -delete\\r\"; expect \"#\"; send \"tar -xzf /tmp/codegen_backup.tar.gz -C /app/codegen\\r\"; expect \"#\"; send \"rm /tmp/codegen_backup.tar.gz\\r\"; expect \"#\"; send \"exit\\r\"; expect eof'",
     "push-fly-volume:cleanup": "rm ./codegen_backup.tar.gz",
-    "push-fly-volume": "bun run push-fly-volume:pack && bun run push-fly-volume:upload && bun run push-fly-volume:update && bun run push-fly-volume:cleanup"
+    "push-fly-volume": "bun run push-fly-volume:pack && bun run push-fly-volume:upload && bun run push-fly-volume:update && bun run push-fly-volume:cleanup",
+    "push-render-volume": "tar -czf - -C ./codegen . | ssh srv-cq9kk73v2p9s73ck9jkg@ssh.oregon.render.com 'rm -rf /app/codegen/* && tar -xzf - -C /app/codegen'"
   }
 }

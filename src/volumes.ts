@@ -3,8 +3,8 @@ import { Database } from 'bun:sqlite'
 import { join } from 'path'
 import { rm } from 'fs/promises'
 
-const isFlySafe = !!process.env.FLY_IO
-const VOLUME_PATH = isFlySafe ? '/app/codegen' : './codegen'
+const isDeployed = !!process.env.FLY_IO || !!process.env.RENDER
+const VOLUME_PATH = isDeployed ? '/app/codegen' : './codegen'
 
 export function vpath(filename: string) {
   return join(VOLUME_PATH, filename)

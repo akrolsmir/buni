@@ -12,8 +12,7 @@ import {
   deleteApp,
   type Message,
 } from '%/buni/db'
-// WARNING: this is a dynamic, un-git'd import
-// import FileBrowser from '%/browser/app'
+import FileBrowser from '%/browser/app'
 import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
 import Versions from '%/buni/versions'
 import { useRealtime } from '%/buni/use-realtime'
@@ -212,7 +211,7 @@ export default function Editor(props: { initialCode?: string }) {
             </div>
           </div>
           <div className="flex-grow overflow-auto">
-            {/* {showFileBrowser && <FileBrowser files={files} />} */}
+            {showFileBrowser && <FileBrowser files={files} />}
             <Messages appName={appName} onApplyDiff={applyDiff} />
           </div>
         </div>

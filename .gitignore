@@ -2,7 +2,7 @@
 codegen/*
 !codegen/buni/
 !codegen/slacc/
-
+!codegen/browser/
 
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 

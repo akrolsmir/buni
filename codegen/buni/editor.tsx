@@ -190,31 +190,31 @@ export default function Editor(props: { initialCode?: string }) {
               }}
             />
           </div>
-          <div className="flex mr-2 my-2">
-            <input
-              type="text"
-              className="flex-grow px-2 py-1 border rounded-l"
-              placeholder="What would you like to change?"
-              value={modify}
-              onChange={(e) => setModify(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleModify()
-                }
-              }}
-            />
-            <button
-              className="px-4 py-1 bg-blue-500 text-white rounded-r disabled:opacity-50"
-              onClick={handleModify}
-              disabled={modifying}
-            >
-              {modifying ? 'Modifying...' : 'Modify with AI'}
-            </button>
-          </div>
         </div>
-        <div className="flex-grow overflow-hidden">
+        <div className="flex-grow overflow-hidden flex flex-col">
           {showFileBrowser && <FileBrowser files={files} />}
           <Messages appName={appName} onApplyDiff={applyDiff} />
+        </div>
+        <div className="flex m-2">
+          <input
+            type="text"
+            className="flex-grow px-2 py-1 border rounded-l"
+            placeholder="What would you like to change?"
+            value={modify}
+            onChange={(e) => setModify(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleModify()
+              }
+            }}
+          />
+          <button
+            className="px-4 py-1 bg-blue-500 text-white rounded-r disabled:opacity-50"
+            onClick={handleModify}
+            disabled={modifying}
+          >
+            {modifying ? 'Modifying...' : 'Modify with AI'}
+          </button>
         </div>
       </div>
     </div>

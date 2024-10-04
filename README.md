@@ -58,6 +58,7 @@ compileReact takes in code as a string, and generates a single file HTML compone
   - Image context for Claude?
   - Longterm planning, readme/knowledge.md?
 - gitlike version control? and pinning versions?
+  - Could literally back each app with git; each request is a new commit, behind the scenes
 - API/LLM capabilities
 - Figure out story for testing non-UI (eg prompts)
 - Shared global database that Claude can introspect
@@ -65,6 +66,7 @@ compileReact takes in code as a string, and generates a single file HTML compone
   - Or get buni to build our own >.>
 - Mobile view? (maybe the apps are mobile by default cuz screen)
 - Social: really good database
+- Testing: take being a platform seriously?
 
 ### Quick wins to try
 
@@ -79,6 +81,8 @@ compileReact takes in code as a string, and generates a single file HTML compone
 - Native Discord integration for game gen
   - https://discord.com/developers/docs/activities/overview#embedded-app-sdk
 - Speed up long file diffs by not rewriting the whole thing?
+- Generate a bunch of app prompts via Claude, then build them all
+  - Or fill out the app ecosystem/Twitterlike with Claude...
 
 ### Medium term roadmap (?)
 
@@ -88,18 +92,19 @@ compileReact takes in code as a string, and generates a single file HTML compone
 
 ### Test apps
 
-- "Twitter for apps"?
+- [x] "Twitter for apps"?
   - Make easy to fetch context from other files or examples (like cursor @)
   - Expand developer box
   - Refresh button to clear react state
   - app_name should be short by default
-- "Peek AI"
+- [x] "Peek AI"
   - random things are hard (like iframe crossorigin stuff)
   - show logs somewhere in editor, without opening chrome inspector?
     - Or, just tell people about inspector for now.
     - Though would be good to pipe back into chat. Also esp server logs.
 - Comments, chat <- tests DB, also realtime streaming?
 - Dalle <- tests external API
+- Bug tracker...
 
 ### Misc TODOs
 

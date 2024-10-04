@@ -106,8 +106,8 @@ export default function Editor(props: { initialCode?: string }) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-2">
-      <div className="w-full md:w-1/2">
+    <div className="flex flex-col md:flex-row h-screen">
+      <div className="w-full md:w-1/2 flex flex-col h-full">
         <div className="flex items-center m-1 justify-end">
           <input
             type="checkbox"
@@ -120,100 +120,101 @@ export default function Editor(props: { initialCode?: string }) {
             Show Code
           </label>
         </div>
-        {showCode ? (
-          <CodeEditor
-            value={code}
-            language="js"
-            placeholder="Please enter TSX code."
-            onChange={(event) => setCode(event.target.value)}
-            padding={15}
-            style={{
-              backgroundColor: '#f5f5f5',
-              fontFamily:
-                'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-            }}
-          />
-        ) : (
-          <iframe srcDoc={transpiled} className="w-full h-[50vh] md:h-screen" />
-        )}
+        <div className="flex-grow overflow-auto">
+          {showCode ? (
+            <CodeEditor
+              value={code}
+              language="js"
+              placeholder="Please enter TSX code."
+              onChange={(event) => setCode(event.target.value)}
+              padding={15}
+              style={{
+                backgroundColor: '#f5f5f5',
+                fontFamily:
+                  'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                height: '100%',
+              }}
+            />
+          ) : (
+            <iframe srcDoc={transpiled} className="w-full h-full" />
+          )}
+        </div>
       </div>
-      <div className="w-full md:w-1/2 overflow-auto h-[50vh] md:h-screen">
-        <div className="h-full flex flex-col">
-          <div className="sticky top-0 bg-white z-10">
-            {/* Horizontal toolbar with links to different sections */}
-            <div className="flex flex-row gap-6 m-1 mb-4">
-              <button
-                className="text-blue-500 text-sm hover:text-blue-700"
-                onClick={() => setShowFileBrowser(!showFileBrowser)}
-              >
-                Files
-              </button>
-              <button
-                className="text-blue-500 text-sm hover:text-blue-700"
-                onClick={openPreview}
-              >
-                Preview
-              </button>
-              <button
-                className="text-blue-500 text-sm hover:text-blue-700"
-                onClick={copyExport}
-              >
-                Export
-              </button>
-              <button
-                className="text-blue-500 text-sm hover:text-blue-700"
-                onClick={saveCode}
-              >
-                Save
-              </button>
-              {/* <button
-                className="text-red-500 text-sm hover:text-red-700"
-                onClick={handleDelete}
-              >
-                Delete
-              </button> */}
-              {/* <button
-                className="text-blue-500 text-sm hover:text-blue-700"
-                onClick={db}
-              >
-                Init DB
-              </button> */}
-              <Versions
-                filename={filename}
-                onSelect={async (version) => {
-                  const newCode = await loadVersion(filename, version)
-                  setCode(newCode)
-                  alert('Loaded version ' + version)
-                  // TODO: reload versions
-                }}
-              />
-            </div>
-            <div className="flex mr-2 my-2">
-              <input
-                type="text"
-                className="flex-grow px-2 py-1 border rounded-l"
-                placeholder="What would you like to change?"
-                value={modify}
-                onChange={(e) => setModify(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleModify()
-                  }
-                }}
-              />
-              <button
-                className="px-4 py-1 bg-blue-500 text-white rounded-r disabled:opacity-50"
-                onClick={handleModify}
-                disabled={modifying}
-              >
-                {modifying ? 'Modifying...' : 'Modify with AI'}
-              </button>
-            </div>
+      <div className="w-full md:w-1/2 flex flex-col h-full p-2">
+        <div className="sticky top-0 bg-white z-10">
+          {/* Horizontal toolbar with links to different sections */}
+          <div className="flex flex-row gap-6 m-1 mb-4">
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={() => setShowFileBrowser(!showFileBrowser)}
+            >
+              Files
+            </button>
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={openPreview}
+            >
+              Preview
+            </button>
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={copyExport}
+            >
+              Export
+            </button>
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={saveCode}
+            >
+              Save
+            </button>
+            {/* <button
+              className="text-red-500 text-sm hover:text-red-700"
+              onClick={handleDelete}
+            >
+              Delete
+            </button> */}
+            {/* <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={db}
+            >
+              Init DB
+            </button> */}
+            <Versions
+              filename={filename}
+              onSelect={async (version) => {
+                const newCode = await loadVersion(filename, version)
+                setCode(newCode)
+                alert('Loaded version ' + version)
+                // TODO: reload versions
+              }}
+            />
           </div>
-          <div className="flex-grow overflow-auto">
-            {showFileBrowser && <FileBrowser files={files} />}
-            <Messages appName={appName} onApplyDiff={applyDiff} />
+          <div className="flex mr-2 my-2">
+            <input
+              type="text"
+              className="flex-grow px-2 py-1 border rounded-l"
+              placeholder="What would you like to change?"
+              value={modify}
+              onChange={(e) => setModify(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleModify()
+                }
+              }}
+            />
+            <button
+              className="px-4 py-1 bg-blue-500 text-white rounded-r disabled:opacity-50"
+              onClick={handleModify}
+              disabled={modifying}
+            >
+              {modifying ? 'Modifying...' : 'Modify with AI'}
+            </button>
           </div>
+        </div>
+        <div className="flex-grow overflow-hidden">
+          {showFileBrowser && <FileBrowser files={files} />}
+          <Messages appName={appName} onApplyDiff={applyDiff} />
         </div>
       </div>
     </div>
@@ -244,8 +245,8 @@ function Messages(props: {
   }
 
   return (
-    <div className="flex flex-col">
-      {messages.map((message) => (
+    <div className="flex flex-col-reverse h-full overflow-y-auto">
+      {[...messages].reverse().map((message) => (
         <div key={message.message_id} className="mb-2 p-1">
           <div className="flex items-baseline mb-1">
             <strong className="text-lg">{message.author_id}</strong>

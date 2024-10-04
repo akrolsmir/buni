@@ -50,9 +50,10 @@ compileReact takes in code as a string, and generates a single file HTML compone
   - [x] Implement via AuthJS?
   - how does permissioning work...???
 - Pass more context to Claude
+  - Internal APIs
   - NPM packages
   - External APIs
-  - Docs and other context, ala Cursor
+  - Docs, sites, other context, ala Cursor
   - Other generated code
   - Image context for Claude?
   - Longterm planning, readme/knowledge.md?

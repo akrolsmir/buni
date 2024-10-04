@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { writeMessage } from '%/slacc/db'
 import { listUsers } from '%/buni/db'
 import { useRealtime } from '%/buni/use-realtime'
+import { CircleUser } from 'https://esm.sh/lucide-react'
 
 type User = {
   id: string
@@ -147,18 +148,23 @@ export default function Component() {
                 new Date(b.created_at).getTime() -
                 new Date(a.created_at).getTime()
             )
-            .map((msg, index) => (
+            .map((msg) => ({ msg, user: usersMap.get(msg.author_id) }))
+            .map(({ msg, user }) => (
               <div key={msg.message_id} className="p-1 px-2">
                 <div className="flex">
-                  <img
-                    src={usersMap.get(msg.author_id)?.image}
-                    alt={usersMap.get(msg.author_id)?.name}
-                    className="w-8 h-8 rounded-full mr-2"
-                  />
+                  {user?.image ? (
+                    <img
+                      src={user?.image}
+                      alt={user?.name}
+                      className="w-8 h-8 rounded-full mr-2"
+                    />
+                  ) : (
+                    <CircleUser className="w-8 h-8 mr-2" />
+                  )}
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">
-                        {usersMap.get(msg.author_id)?.name ?? 'anon'}
+                        {user?.name ?? 'anon'}
                       </span>
                       <span className="text-xs text-gray-300">
                         {new Date(msg.created_at).toLocaleString()}

@@ -13,16 +13,18 @@ const clients = new Map<WebSocket, ClientData>()
 const dbWatchers = new Map<string, fs.FSWatcher>()
 
 function setupDatabaseWatcher(clientData: ClientData) {
-  const { dbPath, table, query } = clientData
+  const { dbPath } = clientData
   if (!dbWatchers.has(dbPath)) {
     const watcher = watch(vpath(dbPath), () => {
-      const db = dbOnVolume(dbPath)
-      const rows = query
-        ? db.query(query).all()
-        : db.query(`SELECT * FROM ${table}`).all()
-
       for (const [ws, cd] of clients.entries()) {
-        if (cd.dbPath === dbPath && cd.table === table && cd.query === query) {
+        // Rerun the query for each client listening to this db
+        // Note that tables and queries may be different
+        if (cd.dbPath === dbPath) {
+          const db = dbOnVolume(dbPath)
+          const rows = cd.query
+            ? db.query(cd.query).all()
+            : db.query(`SELECT * FROM ${cd.table}`).all()
+
           ws.send(JSON.stringify({ type: 'update', data: rows }))
         }
       }

@@ -120,21 +120,23 @@ export default function Editor(props: { initialCode?: string }) {
             Show Code
           </label>
         </div>
-        <div className="flex-grow overflow-auto">
+        <div className="flex-grow relative">
           {showCode ? (
-            <CodeEditor
-              value={code}
-              language="js"
-              placeholder="Please enter TSX code."
-              onChange={(event) => setCode(event.target.value)}
-              padding={15}
-              style={{
-                backgroundColor: '#f5f5f5',
-                fontFamily:
-                  'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-                height: '100%',
-              }}
-            />
+            <div className="absolute inset-0 overflow-auto">
+              <CodeEditor
+                value={code}
+                language="js"
+                placeholder="Please enter TSX code."
+                onChange={(event) => setCode(event.target.value)}
+                padding={15}
+                style={{
+                  backgroundColor: '#f5f5f5',
+                  fontFamily:
+                    'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                  minHeight: '100%',
+                }}
+              />
+            </div>
           ) : (
             <iframe srcDoc={transpiled} className="w-full h-full" />
           )}
@@ -191,7 +193,7 @@ export default function Editor(props: { initialCode?: string }) {
             />
           </div>
         </div>
-        <div className="flex-grow overflow-hidden flex flex-col">
+        <div className="flex-grow overflow-auto">
           {showFileBrowser && <FileBrowser files={files} />}
           <Messages appName={appName} onApplyDiff={applyDiff} />
         </div>

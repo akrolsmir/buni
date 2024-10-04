@@ -246,9 +246,22 @@ const server = Bun.serve({
     }
 
     // Use app/artifact as the homepage for now:
-    return compileReact(await Bun.file('./app/artifact.tsx').text())
+    if (path === '') {
+      return compileReact(await Bun.file('./app/artifact.tsx').text())
+    }
+    // 404 for everything else
+    return new Response('Not found', { status: 404 })
   },
   websocket: websocketHandlers,
+  error(error) {
+    console.error('Server error:', error)
+    return new Response(`<pre>${error}\n${error.stack}</pre>`, {
+      headers: {
+        'Content-Type': 'text/html',
+      },
+      status: 500,
+    })
+  },
 })
 
 console.log('========== Running on http://localhost:3000 ==========')

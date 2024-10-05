@@ -37,13 +37,11 @@ const server = Bun.serve({
     // To get user info:
     // const session = await getSession(req)
 
-    // At /transpile?code=..., transpile the code and return it
+    // At /transpile, transpile the code and return it
     // Note: badly named as we're just building here
     if (path === 'transpile') {
-      // Accepts POST and GET
-      const code =
-        req.method === 'POST' ? await req.text() : url.searchParams.get('code')
-      return compileReact(decodeURIComponent(code ?? ''))
+      const code = await req.text()
+      return compileReact(code)
     }
 
     // Streaming version of generate

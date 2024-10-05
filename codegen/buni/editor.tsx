@@ -35,11 +35,9 @@ export default function Editor(props: { initialCode?: string }) {
   // Use the /transpile service to transpile this.
   // TODO: ideally, this code could directly link the transpilation code rather than doing another server<>client round trip
   useEffect(() => {
-    // Base64 encode the code
-    const encodedCode = encodeURIComponent(code)
     fetch('/transpile', {
       method: 'POST',
-      body: encodedCode,
+      body: code,
       headers: {
         'Content-Type': 'text/plain',
       },

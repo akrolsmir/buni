@@ -65,6 +65,7 @@ const app = new Elysia()
       return { success: true }
     },
     {
+      type: 'json',
       body: t.Object({
         filename: t.String(),
         content: t.String(),
@@ -73,9 +74,10 @@ const app = new Elysia()
   )
 
   // App route
-  .get('/app/:filename', async ({ params, set }) => {
+  .get('/app/*', async ({ params, set }) => {
     try {
-      const source = await readFromVolume(params.filename)
+      const filename = params['*']
+      const source = await readFromVolume(filename)
       return compileReact(source)
     } catch (error) {
       set.status = 404
@@ -98,10 +100,11 @@ const app = new Elysia()
   })
 
   // ESM route
-  .get('/esm/:filename', async ({ params, set }) => {
-    const contents = await readFromVolume(params.filename)
+  .get('/esm/*', async ({ params, set }) => {
+    const filename = params['*']
+    const contents = await readFromVolume(filename)
     let js = contents
-    const extension = params.filename.split('.').pop()
+    const extension = filename.split('.').pop()
     if (extension === 'tsx' || extension === 'ts') {
       const transpiler = new Bun.Transpiler({
         loader: extension,
@@ -224,11 +227,7 @@ const app = new Elysia()
   )
 
   // WebSocket handler
-  .ws('/realtime', {
-    open: websocketHandlers.open,
-    message: websocketHandlers.message,
-    close: websocketHandlers.close,
-  })
+  .ws('/realtime', websocketHandlers)
 
   // Error handler
   .onError(({ error, set }) => {

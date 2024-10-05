@@ -46,8 +46,10 @@ export const websocketHandlers = {
   open(ws: WebSocket) {
     ws.send(JSON.stringify({ type: 'connected' }))
   },
-  message(ws: WebSocket, message: string | Buffer) {
-    const clientData = JSON.parse(message.toString()) as ClientData
+  message(ws: WebSocket, message: string | Buffer | ClientData) {
+    // Bun sends as string/Buffer; Elysia sends as json (ClientData)
+    const clientData =
+      typeof message === 'string' ? JSON.parse(message) : message
     clients.set(ws, clientData)
     setupDatabaseWatcher(clientData)
     sendInitialData(ws, clientData)

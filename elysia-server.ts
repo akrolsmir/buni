@@ -13,8 +13,10 @@ import puppeteer from 'puppeteer-core'
 import { websocketHandlers, type ClientData } from './src/realtime'
 import { compileReact } from 'src/render'
 import { AUTH_CONFIG } from 'src/auth'
+import { swagger } from '@elysiajs/swagger'
 
 const app = new Elysia()
+  .use(swagger())
   // Auth routes
   .group('/auth', (app) => {
     const handleAuthRequest = ({ request }) => {

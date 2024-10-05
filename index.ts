@@ -28,6 +28,7 @@ const server = Bun.serve({
       }
       // Supported routes for client apps to call:
       // /auth/signin
+      // (Accepts ?callbackUrl=... to redirect to after signin)
       // /auth/signout
       // /auth/session
       return await Auth(newReq, AUTH_CONFIG)

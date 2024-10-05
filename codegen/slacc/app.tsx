@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { writeMessage } from '%/slacc/db'
 import { listUsers } from '%/buni/db'
+import { useUser, AuthButton, type User } from '%/buni/use-auth'
 import { useRealtime } from '%/buni/use-realtime'
 import { CircleUser } from 'https://esm.sh/lucide-react'
-
-type User = {
-  id: string
-  name: string
-  username: string
-  image: string
-}
 
 type Message = {
   message_id: string
@@ -19,44 +13,8 @@ type Message = {
   created_at: string
 }
 
-function useSession() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch('/auth/session')
-      .then((response) => response.json())
-      .then((data) => {
-        setUser(data.user)
-        setLoading(false)
-      })
-      .catch((error) => {
-        console.error('Error fetching session:', error)
-        setLoading(false)
-      })
-  }, [])
-
-  return { user, loading }
-}
-
-const AuthButton = ({ user }: { user: User }) => {
-  const handleAuth = () => {
-    const url = user ? '/auth/signout' : '/auth/signin'
-    window.open(url, '_blank', 'width=500,height=600')
-  }
-
-  return (
-    <button
-      onClick={handleAuth}
-      className="bg-purple-700 text-white px-4 py-2 rounded ml-4"
-    >
-      {user ? 'Sign out' : 'Sign in'}
-    </button>
-  )
-}
-
 export default function Component() {
-  const { user, loading } = useSession()
+  const user = useUser()
   const [activeChannel, setActiveChannel] = useState('general')
   const [messages, setMessages] = useRealtime<Message>({
     dbPath: '/slacc/db.sqlite',
@@ -96,26 +54,24 @@ export default function Component() {
       {/* Header */}
       <header className="bg-purple-600 text-white p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">sl/acc</h1>
-        {!loading && (
-          <div className="flex items-center">
-            {user && (
-              <>
-                <img
-                  src={user.image}
-                  alt={user.name}
-                  className="w-8 h-8 rounded-full mr-2"
-                />
-                <div className="flex flex-col">
-                  <span>{user.name}</span>
-                  <span className="text-sm text-purple-200">
-                    @{user.username}
-                  </span>
-                </div>
-              </>
-            )}
-            <AuthButton user={user} />
-          </div>
-        )}
+        <div className="flex items-center">
+          {user && (
+            <>
+              <img
+                src={user.image}
+                alt={user.name}
+                className="w-8 h-8 rounded-full mr-2"
+              />
+              <div className="flex flex-col">
+                <span>{user.name}</span>
+                <span className="text-sm text-purple-200">
+                  @{user.username}
+                </span>
+              </div>
+            </>
+          )}
+          <AuthButton user={user} />
+        </div>
       </header>
 
       {/* Channel list */}

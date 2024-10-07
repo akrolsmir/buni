@@ -60,6 +60,7 @@ export default function Editor(props: { initialCode?: string }) {
     await writeMessage(appName, userId, modify)
     const response = await modifyCode(code, modify)
     await writeMessage(appName, 'claude', response)
+    setModify('')
     setModifying(false)
   }
 

@@ -16,6 +16,7 @@ import FileBrowser from '%/browser/app'
 import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
 import Versions from '%/buni/versions'
 import { useRealtime } from '%/buni/use-realtime'
+import { useUser, AuthButton, type User } from '%/buni/use-auth'
 
 const DEFAULT_CODE = `const App = () => { return <h1>Hello World</h1> }; export default App;`
 
@@ -24,7 +25,8 @@ export default function Editor(props: { initialCode?: string }) {
   const [transpiled, setTranspiled] = useState('')
   const [showFileBrowser, setShowFileBrowser] = useState(false)
   const [files, setFiles] = useState([])
-
+  const user = useUser()
+  const userId = user?.id ?? 'anon'
   // if ?admin is set in the URL params, then set isAdmin to true
   const isAdmin = window.location.search.includes('admin')
 
@@ -54,7 +56,7 @@ export default function Editor(props: { initialCode?: string }) {
   const handleModify = async () => {
     setModifying(true)
 
-    await writeMessage(appName, 'austin', modify)
+    await writeMessage(appName, userId, modify)
     const response = await modifyCode(code, modify)
     await writeMessage(appName, 'claude', response)
     setModifying(false)
@@ -102,7 +104,7 @@ export default function Editor(props: { initialCode?: string }) {
     const diff = extractBlock(content, 'code_diff')
     const rewritten = await rewriteCode(code, diff)
     setCode(rewritten)
-    await writeMessage(appName, 'austin', 'Applied code diff!')
+    await writeMessage(appName, userId, 'Applied code diff!')
     setModifying(false)
   }
 
@@ -206,7 +208,10 @@ export default function Editor(props: { initialCode?: string }) {
           <input
             type="text"
             className="flex-grow px-2 py-1 border rounded-l"
-            placeholder="What would you like to change?"
+            placeholder={
+              `What would you like to change` +
+              (user?.id ? `, ${user.name}?` : '?')
+            }
             value={modify}
             onChange={(e) => setModify(e.target.value)}
             onKeyDown={(e) => {

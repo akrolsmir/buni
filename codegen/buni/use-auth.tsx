@@ -24,8 +24,12 @@ export function useUser() {
   return user
 }
 
-export function AuthButton(props: { user: User | null; callbackUrl?: string }) {
-  const { user, callbackUrl } = props
+export function AuthButton(props: {
+  user: User | null
+  callbackUrl?: string
+  className?: string
+}) {
+  const { user, callbackUrl, className } = props
   const handleAuth = () => {
     let url = user ? '/auth/signout' : '/auth/signin'
     if (callbackUrl) {
@@ -39,7 +43,9 @@ export function AuthButton(props: { user: User | null; callbackUrl?: string }) {
   return (
     <button
       onClick={handleAuth}
-      className="bg-purple-700 text-white px-4 py-2 rounded ml-4"
+      className={`px-4 py-2 rounded ml-4 ${
+        className ? className : 'bg-purple-700 text-white'
+      }`}
     >
       {user ? 'Sign out' : 'Sign in'}
     </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 import { createApp, listApps } from '%/buni/db'
+import { useUser, AuthButton, type User } from '%/buni/use-auth'
 
 // TODO: Actually bootstrap this?
 const DEFAULT_CODE = `// Enter a prompt to get started!
@@ -12,11 +13,12 @@ export default function Artifact() {
   const [prompt, setPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
   const [generated, setGenerated] = useState(DEFAULT_CODE)
+  const user = useUser()
 
   async function generateArtifactStream() {
     setGenerating(true)
     await createApp({
-      creator_id: 'austin',
+      creator_id: user?.id ?? 'anon',
       app_name: appName(prompt),
       description: prompt,
     })
@@ -59,6 +61,27 @@ export default function Artifact() {
     <div className="flex flex-col md:flex-row h-screen">
       <div className="h-2/3 md:w-1/2 overflow-auto md:h-screen">
         <div className="h-full">
+          <header className="bg-blue-400 text-white p-4 flex justify-between items-center">
+            <h1 className="text-xl font-bold">yield - </h1>
+            <div className="flex items-center">
+              {user && (
+                <>
+                  <img
+                    src={user.image}
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full mr-2"
+                  />
+                  <div className="flex flex-col">
+                    <span>{user.name}</span>
+                    <span className="text-sm text-blue-200">
+                      @{user.username}
+                    </span>
+                  </div>
+                </>
+              )}
+              <AuthButton user={user} className="bg-blue-500" />
+            </div>
+          </header>
           <div className="flex flex-col items-center justify-center min-h-screen h-full w-full bg-gray-100">
             <div className="w-full max-w-md p-6 rounded-lg shadow-md">
               <input

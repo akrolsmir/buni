@@ -244,11 +244,12 @@ function Messages(props: {
 
   function removeBlock(text: string, tag: string) {
     const start = text.indexOf(`<${tag}>`)
-    const end = text.lastIndexOf(`</${tag}>`) + `</${tag}>`.length
-    if (start !== -1 && end !== -1) {
-      return text.slice(0, start) + text.slice(end)
+    if (start === -1) return text
+    const end = text.lastIndexOf(`</${tag}>`)
+    if (end !== -1) {
+      return text.slice(0, start) + text.slice(end + `</${tag}>`.length)
     }
-    return text
+    return text.slice(0, start)
   }
 
   return (

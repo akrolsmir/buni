@@ -66,6 +66,13 @@ export async function modifyCode(code: string, request: string) {
   if (response.headers.get('content-type')?.startsWith('application/json')) {
     const json = await response.json()
     const text = (json.content[0] as { text: string }).text
+    // If the Anthropic response was too long, instead return an error message
+    if (json.stop_reason === 'max_tokens') {
+      return (
+        'Error: the response was too long.\n\nIt started with: ' +
+        text.slice(0, 1000)
+      )
+    }
     return text
   } else {
     // Most often when Anthropic is overloaded
@@ -76,8 +83,10 @@ export async function modifyCode(code: string, request: string) {
 // Extract a block of text from between <tag> and </tag>
 export function extractBlock(text: string, tag: string) {
   const start = text.indexOf(`<${tag}>`) + `<${tag}>`.length
+  if (start === -1) return ''
   const end = text.lastIndexOf(`</${tag}>`)
-  return start !== -1 && end !== -1 ? text.slice(start, end) : ''
+  // If no closing tag, return start til the end of text
+  return end !== -1 ? text.slice(start, end) : text.slice(start)
 }
 
 const REWRITE_PROMPT = `

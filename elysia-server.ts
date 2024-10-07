@@ -37,13 +37,9 @@ const app = new Elysia()
       }
       return Auth(newReq, AUTH_CONFIG)
     }
-    return (
-      app
-        // (Accepts ?callbackUrl=... to redirect to after signin)
-        .get('/signin', handleAuthRequest)
-        .get('/signout', handleAuthRequest)
-        .get('/session', handleAuthRequest)
-    )
+    // Handle all /auth/* GET and POST requests with handleAuthRequest
+    // Unfortunately loses types for the /auth endpoints...
+    return app.all('/*', handleAuthRequest)
   })
 
   // At /transpile, transpile the code and return it

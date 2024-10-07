@@ -17,6 +17,13 @@ import { swagger } from '@elysiajs/swagger'
 
 const app = new Elysia()
   .use(swagger())
+  // Error handler; must be defined before the routes it will catch
+  .onError(({ error, set, request }) => {
+    console.error(`Server error on path ${request.url}:`, error)
+    set.status = 500
+    set.headers['Content-Type'] = 'text/html'
+    return `<pre>Error on path: ${request.url}\n\n${error}\n${error.stack}</pre>`
+  })
   // Handle authentication
   .group('/auth', (app) => {
     const handleAuthRequest = ({ request }) => {
@@ -81,28 +88,17 @@ const app = new Elysia()
 
   // Route to the corresponding file in the /app directory
   .get('/app/*', async ({ params, set }) => {
-    try {
-      const filename = params['*']
-      const source = await readFromVolume(filename)
-      return compileReact(source)
-    } catch (error) {
-      set.status = 404
-      return 'File not found'
-    }
+    const filename = params['*']
+    const source = await readFromVolume(filename)
+    return compileReact(source)
   })
 
   // Use app/editor.tsx to edit the code in the /codegen directory
   .get('/edit/*', async ({ params, set }) => {
-    try {
-      const filename = params['*']
-      const source = await readFromVolume(filename)
-      const editor = await readFromVolume('buni/editor.tsx')
-      return compileReact(editor, { initialCode: source })
-    } catch (error) {
-      console.log('cannot edit', error)
-      set.status = 404
-      return 'File not found'
-    }
+    const filename = params['*']
+    const source = await readFromVolume(filename)
+    const editor = await readFromVolume('buni/editor.tsx')
+    return compileReact(editor, { initialCode: source })
   })
 
   // Serve /codegen/blah.tsx files as ES modules, so you can:
@@ -228,10 +224,12 @@ const app = new Elysia()
     }
   )
 
-  // Homepage route
-  .get('/', async () =>
-    compileReact(await Bun.file('./app/artifact.tsx').text())
-  )
+  // Homepage should redirect to /app/artifact/app.tsx on this server
+  .get('/', async () => {
+    const artifact = await readFromVolume('artifact/app.tsx')
+    return compileReact(artifact)
+  })
+
   .get('/favicon.ico', () => {
     // Return the lucide-react "split" icon, which looks like a "Y"
     const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-split"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/></svg>`
@@ -245,14 +243,6 @@ const app = new Elysia()
 
   // Listen for realtime updates to SQLite dbs
   .ws('/realtime', websocketHandlers)
-
-  // Error handler
-  .onError(({ error, set, request }) => {
-    console.error(`Server error on path ${request.url}:`, error)
-    set.status = 500
-    set.headers['Content-Type'] = 'text/html'
-    return `<pre>Error on path: ${request.url}\n\n${error}\n${error.stack}</pre>`
-  })
 
 const PORT = 3000
 app.listen(PORT)

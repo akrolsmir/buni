@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
-import { createApp, listApps } from '../codegen/buni/db'
+import { createApp, listApps } from '%/buni/db'
 
 // TODO: Actually bootstrap this?
 const DEFAULT_CODE = `// Enter a prompt to get started!

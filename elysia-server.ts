@@ -100,7 +100,13 @@ const app = new Elysia()
   // Use app/editor.tsx to edit the code in the /codegen directory
   .get('/edit/*', async ({ params, set }) => {
     const filename = params['*']
-    const source = await readFromVolume(filename)
+    let source
+    try {
+      source = await readFromVolume(filename)
+    } catch (error) {
+      console.log('Error reading file:', filename, error)
+      source = `export default function Component() { return <div>File not found: ${filename}</div> }`
+    }
     const editor = await readFromVolume('buni/editor.tsx')
     return compileReact(editor, { initialCode: source })
   })
@@ -173,7 +179,8 @@ const app = new Elysia()
   .get('/ls', () => listVolume())
 
   // Delete route
-  .delete('/delete/:appName', async ({ params }) => {
+  .get('/delete/:appName', async ({ params }) => {
+    console.log('Deleting', params.appName)
     await deleteFromVolume(params.appName)
     return { success: true }
   })

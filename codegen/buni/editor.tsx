@@ -25,6 +25,9 @@ export default function Editor(props: { initialCode?: string }) {
   const [showFileBrowser, setShowFileBrowser] = useState(false)
   const [files, setFiles] = useState([])
 
+  // if ?admin is set in the URL params, then set isAdmin to true
+  const isAdmin = window.location.search.includes('admin')
+
   useEffect(() => {
     fetch('/ls')
       .then((response) => response.json())
@@ -79,7 +82,7 @@ export default function Editor(props: { initialCode?: string }) {
   async function handleDelete() {
     if (window.confirm(`Are you sure you want to delete ${appName}?`)) {
       await deleteApp(appName)
-      const response = await fetch(`/delete/${appName}`, { method: 'POST' })
+      const response = await fetch(`/delete/${appName}`, { method: 'GET' })
       if (response.ok) {
         alert('App deleted successfully')
         window.location.href = '/' // Redirect to home page
@@ -168,18 +171,22 @@ export default function Editor(props: { initialCode?: string }) {
             >
               Save
             </button>
-            {/* <button
-              className="text-red-500 text-sm hover:text-red-700"
-              onClick={handleDelete}
-            >
-              Delete
-            </button> */}
-            {/* <button
-              className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={db}
-            >
-              Init DB
-            </button> */}
+            {isAdmin && (
+              <>
+                <button
+                  className="text-red-500 text-sm hover:text-red-700"
+                  onClick={handleDelete}
+                >
+                  Delete
+                </button>
+                <button
+                  className="text-red-500 text-sm hover:text-red-700"
+                  onClick={db}
+                >
+                  Init DB
+                </button>
+              </>
+            )}
             <Versions
               filename={filename}
               onSelect={async (version) => {

@@ -17,7 +17,7 @@ import { swagger } from '@elysiajs/swagger'
 
 const app = new Elysia()
   .use(swagger())
-  // Auth routes
+  // Handle authentication
   .group('/auth', (app) => {
     const handleAuthRequest = ({ request }) => {
       let newReq = request
@@ -26,18 +26,22 @@ const app = new Elysia()
       }
       return Auth(newReq, AUTH_CONFIG)
     }
-    return app
-      .get('/signin', handleAuthRequest)
-      .get('/signout', handleAuthRequest)
-      .get('/session', handleAuthRequest)
+    return (
+      app
+        // (Accepts ?callbackUrl=... to redirect to after signin)
+        .get('/signin', handleAuthRequest)
+        .get('/signout', handleAuthRequest)
+        .get('/session', handleAuthRequest)
+    )
   })
 
-  // Transpile route
+  // At /transpile, transpile the code and return it
   .post('/transpile', ({ body }) => compileReact(body), {
     body: t.String(),
   })
 
-  // Generate stream route
+  // Generate streaming response for app creation
+  // TODO: support streaming responses for other Anthropic calls
   .post(
     '/generate-stream',
     async ({ body, set }) => {
@@ -59,7 +63,7 @@ const app = new Elysia()
     }
   )
 
-  // Write route
+  // Write this file to disk
   .post(
     '/write',
     async ({ body }) => {
@@ -75,7 +79,7 @@ const app = new Elysia()
     }
   )
 
-  // App route
+  // Route to the corresponding file in the /app directory
   .get('/app/*', async ({ params, set }) => {
     try {
       const filename = params['*']
@@ -87,7 +91,7 @@ const app = new Elysia()
     }
   })
 
-  // Edit route
+  // Use app/editor.tsx to edit the code in the /codegen directory
   .get('/edit/*', async ({ params, set }) => {
     try {
       const filename = params['*']
@@ -101,7 +105,8 @@ const app = new Elysia()
     }
   })
 
-  // ESM route
+  // Serve /codegen/blah.tsx files as ES modules, so you can:
+  // `import Component from "http://localhost:3000/esm/filename.tsx"`
   .get('/esm/*', async ({ params, set }) => {
     const filename = params['*']
     const contents = await readFromVolume(filename)
@@ -119,7 +124,7 @@ const app = new Elysia()
     return js
   })
 
-  // DB routes
+  // Route DB operations through server for now
   .post(
     '/db/run',
     async ({ body }) => {
@@ -152,7 +157,7 @@ const app = new Elysia()
     }
   )
 
-  // Anthropic route
+  // Proxy requests to Anthropic using our API key
   .post(
     '/anthropic',
     async ({ body }) => {
@@ -173,7 +178,7 @@ const app = new Elysia()
     return { success: true }
   })
 
-  // Screenshot route
+  // Take a screenshot? Not currently working except locally
   .get(
     '/screenshot',
     async ({ query, set }) => {
@@ -227,18 +232,29 @@ const app = new Elysia()
   .get('/', async () =>
     compileReact(await Bun.file('./app/artifact.tsx').text())
   )
+  .get('/favicon.ico', () => {
+    // Return the lucide-react "split" icon, which looks like a "Y"
+    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-split"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/></svg>`
+    return new Response(svgIcon, {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'cache-control': 'public, max-age=86400', // Cached for 1 day
+      },
+    })
+  })
 
-  // WebSocket handler
+  // Listen for realtime updates to SQLite dbs
   .ws('/realtime', websocketHandlers)
 
   // Error handler
-  .onError(({ error, set }) => {
-    console.error('Server error:', error)
+  .onError(({ error, set, request }) => {
+    console.error(`Server error on path ${request.url}:`, error)
     set.status = 500
     set.headers['Content-Type'] = 'text/html'
-    return `<pre>${error}\n${error.stack}</pre>`
+    return `<pre>Error on path: ${request.url}\n\n${error}\n${error.stack}</pre>`
   })
 
-app.listen(4000)
+const PORT = 3000
+app.listen(PORT)
 
-console.log('========== Running on http://localhost:4000 ==========')
+console.log(`========== Running on http://localhost:${PORT} ==========`)

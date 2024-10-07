@@ -62,9 +62,15 @@ export async function modifyCode(code: string, request: string) {
     method: 'POST',
     body: JSON.stringify(body),
   })
-  const json = await response.json()
-  const text = (json.content[0] as { text: string }).text
-  return text
+  // Detect the response type; if json, return text; otherwise, return the whole response
+  if (response.headers.get('content-type')?.startsWith('application/json')) {
+    const json = await response.json()
+    const text = (json.content[0] as { text: string }).text
+    return text
+  } else {
+    // Most often when Anthropic is overloaded
+    return await response.text()
+  }
 }
 
 // Extract a block of text from between <tag> and </tag>

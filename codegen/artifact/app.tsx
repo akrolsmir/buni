@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 import { createApp, listApps } from '%/buni/db'
 import { useUser, AuthButton, type User } from '%/buni/use-auth'
+import { Split } from 'https://esm.sh/lucide-react'
 
 // TODO: Actually bootstrap this?
 const DEFAULT_CODE = `// Enter a prompt to get started!
@@ -61,8 +62,13 @@ export default function Artifact() {
     <div className="flex flex-col md:flex-row h-screen">
       <div className="h-2/3 md:w-1/2 overflow-auto md:h-screen">
         <div className="h-full">
-          <header className="bg-blue-400 text-white p-4 flex justify-between items-center">
-            <h1 className="text-xl font-bold">yield - </h1>
+          <header className="bg-blue-500 text-white p-4 flex justify-between items-center">
+            <h1 className="text-xl font-bold">
+              <div className="flex items-center">
+                <Split className="w-6 h-6 mr-2" />
+                <span>yield</span>
+              </div>
+            </h1>
             <div className="flex items-center">
               {user && (
                 <>
@@ -79,7 +85,7 @@ export default function Artifact() {
                   </div>
                 </>
               )}
-              <AuthButton user={user} className="bg-blue-500" />
+              <AuthButton user={user} className="bg-blue-600" />
             </div>
           </header>
           <div className="flex flex-col items-center justify-center min-h-screen h-full w-full bg-gray-100">

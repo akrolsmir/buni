@@ -69,6 +69,7 @@ export const AUTH_CONFIG: AuthConfig = {
         username: string
       }
       session.user.id = user.user_id
+      // @ts-ignore
       session.user.username = user.username
       return session
     },

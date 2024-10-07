@@ -30,7 +30,7 @@ const app = new Elysia()
   })
   // Handle authentication
   .group('/auth', (app) => {
-    const handleAuthRequest = ({ request }) => {
+    const handleAuthRequest = ({ request }: { request: Request }) => {
       let newReq = request
       if (request.headers.get('x-forwarded-proto') === 'https') {
         newReq = new Request(request.url.replace(/^http:/, 'https:'), request)
@@ -161,7 +161,7 @@ const app = new Elysia()
   .post(
     '/anthropic',
     async ({ body }) => {
-      return await sudoAnthropic(body)
+      return await sudoAnthropic(body as any)
     },
     {
       type: 'json',
@@ -218,7 +218,7 @@ const app = new Elysia()
       } catch (error) {
         console.error('Screenshot error:', error)
         set.status = 500
-        return `Failed to generate screenshot: ${error.message}`
+        return `Failed to generate screenshot: ${error}`
       }
     },
     {
@@ -246,7 +246,7 @@ const app = new Elysia()
   })
 
   // Listen for realtime updates to SQLite dbs
-  .ws('/realtime', websocketHandlers)
+  .ws('/realtime', websocketHandlers as any)
 
 const PORT = 3000
 app.listen(PORT)

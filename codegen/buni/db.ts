@@ -143,7 +143,8 @@ export async function clearMessages(app_name: string) {
   )
 }
 
-async function writeFile(filename: string, content: string) {
+export async function writeFile(filename: string, content: string) {
+  console.log('writing file', filename, content.slice(0, 100))
   await fetch('/write', {
     method: 'POST',
     body: JSON.stringify({
@@ -154,17 +155,17 @@ async function writeFile(filename: string, content: string) {
 }
 
 // Could also consider saving file versions in DB instead of straight on disk
-export async function backupAndSaveCode(filename: string, code: string) {
+export async function backupCode(filename: string, code: string) {
   // In a single SQL query, find the current version of the file in Versions, increment it, and save the new version
-  await query(
+  const result = await query(
     `INSERT INTO Versions (filename, version, content) 
     VALUES ($filename, 
       (SELECT COALESCE(MAX(version), 0) + 1 FROM Versions WHERE filename = $filename), 
-      $code)`,
+      $code)
+    RETURNING version`,
     { $filename: filename, $code: code }
   )
-  // Overwrite the existing file
-  await writeFile(filename, code)
+  return result[0].version
 }
 
 // Return a list of integers, representing the version numbers

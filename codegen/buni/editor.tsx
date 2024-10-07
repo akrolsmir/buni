@@ -12,6 +12,8 @@ import {
   deleteApp,
   type Message,
   type DbUser,
+  writeFile,
+  backupCode,
 } from '%/buni/db'
 import FileBrowser from '%/browser/app'
 import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
@@ -78,10 +80,14 @@ export default function Editor(props: { initialCode?: string }) {
     navigator.clipboard.writeText(importText)
     alert(`Copied to clipboard:\n\n${importText}`)
   }
-  async function saveCode() {
+  async function newVersion() {
     const filename = url.split('/edit/')[1]
-    await backupAndSaveCode(filename, code)
-    alert('Saved')
+    const version = await backupCode(filename, code)
+    await writeMessage(appName, userId, 'Saved new version ' + version)
+  }
+  async function saveCode(code: string) {
+    const filename = url.split('/edit/')[1]
+    await writeFile(filename, code)
   }
   async function handleDelete() {
     if (window.confirm(`Are you sure you want to delete ${appName}?`)) {
@@ -171,7 +177,10 @@ export default function Editor(props: { initialCode?: string }) {
             </button>
             <button
               className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={saveCode}
+              onClick={async () => {
+                await newVersion()
+                await saveCode(code)
+              }}
             >
               Save
             </button>
@@ -196,6 +205,7 @@ export default function Editor(props: { initialCode?: string }) {
               onSelect={async (version) => {
                 const newCode = await loadVersion(filename, version)
                 setCode(newCode)
+                await saveCode(newCode)
                 alert('Loaded version ' + version)
                 // TODO: reload versions
               }}
@@ -254,7 +264,6 @@ function Messages(props: {
   for (const user of users) {
     usersMap.set(user.user_id, user)
   }
-  console.log('usersMap', usersMap)
 
   const [expandedDiffs, setExpandedDiffs] = useState<{
     [key: string]: boolean

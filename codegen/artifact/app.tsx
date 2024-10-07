@@ -56,8 +56,8 @@ export default function Artifact() {
   }, [])
 
   return (
-    <div className="flex flex-row gap-2">
-      <div className="w-1/2 overflow-auto h-screen">
+    <div className="flex flex-col md:flex-row h-screen">
+      <div className="h-2/3 md:w-1/2 overflow-auto md:h-screen">
         <div className="h-full">
           <div className="flex flex-col items-center justify-center min-h-screen h-full w-full bg-gray-100">
             <div className="w-full max-w-md p-6 rounded-lg shadow-md">
@@ -104,7 +104,7 @@ export default function Artifact() {
         </div>
       </div>
 
-      <div className="w-1/2 overflow-auto h-screen">
+      <div className="h-1/3 md:w-1/2 overflow-auto md:h-screen">
         <CodeEditor
           value={generated}
           language="tsx"
@@ -115,6 +115,7 @@ export default function Artifact() {
             backgroundColor: '#f5f5f5',
             fontFamily:
               'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+            height: '100%',
           }}
         />
       </div>

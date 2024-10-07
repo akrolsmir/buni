@@ -11,6 +11,7 @@ import {
   writeMessage,
   deleteApp,
   type Message,
+  type DbUser,
 } from '%/buni/db'
 import FileBrowser from '%/browser/app'
 import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
@@ -243,6 +244,17 @@ function Messages(props: {
     table: 'Messages',
     query: `SELECT * FROM Messages WHERE app_id = (SELECT app_id FROM Apps WHERE app_name = '${appName}')`,
   })
+  const [users, setUsers] = useRealtime<DbUser>({
+    dbPath: '/buni/db.sqlite',
+    table: 'Users',
+  })
+  // Map of user_id to User
+  const usersMap = new Map<string, DbUser>()
+  for (const user of users) {
+    usersMap.set(user.user_id, user)
+  }
+  console.log('usersMap', usersMap)
+
   const [expandedDiffs, setExpandedDiffs] = useState<{
     [key: string]: boolean
   }>({})
@@ -262,7 +274,9 @@ function Messages(props: {
       {[...messages].reverse().map((message) => (
         <div key={message.message_id} className="mb-2 p-1">
           <div className="flex items-baseline mb-1">
-            <strong className="text-lg">{message.author_id}</strong>
+            <strong className="text-lg">
+              {usersMap.get(message.author_id)?.username ?? 'anon'}
+            </strong>
             <span className="text-xs text-gray-400 ml-2">
               {new Date(message.created_at).toLocaleString()}
             </span>

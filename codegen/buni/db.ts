@@ -193,7 +193,7 @@ export async function deleteApp(app_name: string) {
   })
 }
 
-type DbUser = {
+export type DbUser = {
   user_id: string
   username: string
   email: string

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { writeMessage } from '%/slacc/db'
-import { listUsers } from '%/buni/db'
+import { listUsers, type DbUser } from '%/buni/db'
 import { useUser, AuthButton, type User } from '%/buni/use-auth'
 import { useRealtime } from '%/buni/use-realtime'
 import { CircleUser } from 'https://esm.sh/lucide-react'
@@ -20,23 +20,15 @@ export default function Component() {
     dbPath: '/slacc/db.sqlite',
     table: 'Messages',
   })
+  const [users, setUsers] = useRealtime<DbUser>({
+    dbPath: '/buni/db.sqlite',
+    table: 'Users',
+  })
   // Map of user_id to User
-  const [usersMap, setUsersMap] = useState<Map<string, User>>(new Map())
-
-  useEffect(() => {
-    listUsers().then((users) => {
-      const usersMap = new Map<string, User>()
-      for (const user of users) {
-        usersMap.set(user.user_id, {
-          id: user.user_id,
-          name: user.name,
-          username: user.username,
-          image: user.avatar_url,
-        })
-      }
-      setUsersMap(usersMap)
-    })
-  }, [])
+  const usersMap = new Map<string, DbUser>()
+  for (const user of users) {
+    usersMap.set(user.user_id, user)
+  }
 
   const [newMessage, setNewMessage] = useState('')
 
@@ -108,9 +100,9 @@ export default function Component() {
             .map(({ msg, user }) => (
               <div key={msg.message_id} className="p-1 px-2">
                 <div className="flex">
-                  {user?.image ? (
+                  {user?.avatar_url ? (
                     <img
-                      src={user?.image}
+                      src={user?.avatar_url}
                       alt={user?.name}
                       className="w-8 h-8 rounded-full mr-2"
                     />

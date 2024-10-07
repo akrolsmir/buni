@@ -22,7 +22,11 @@ const app = new Elysia()
     console.error(`Server error on path ${request.url}:`, error)
     set.status = 500
     set.headers['Content-Type'] = 'text/html'
-    return `<pre>Error on path: ${request.url}\n\n${error}\n${error.stack}</pre>`
+    return `<pre>Error on path: ${request.url}\n\n${JSON.stringify(
+      error,
+      null,
+      2
+    )}\n${error.stack}</pre>`
   })
   // Handle authentication
   .group('/auth', (app) => {

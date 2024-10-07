@@ -106,6 +106,11 @@ compileReact takes in code as a string, and generates a single file HTML compone
 - Dalle <- tests external API
 - Bug tracker...
 
+Prompts from people:
+
+- "Can you build me a Slack-like interface, with a sidebar of different chats. One of the chats should be "investigations", which shows a graph data UI using react-flow"
+- "App that let's people put their thumb in a screen, and then after 5 seconds selects one at random, like chwazi"
+
 ### Misc TODOs
 
 - [x] Set up functional editor page

@@ -35,16 +35,12 @@ function setupDatabaseWatcher(clientData: ClientData) {
 }
 
 function sendInitialData(ws: WebSocket, clientData: ClientData) {
-  try {
-    const { dbPath, table, query } = clientData
-    const db = dbOnVolume(dbPath)
-    const rows = query
-      ? db.query(query).all()
-      : db.query(`SELECT * FROM ${table}`).all()
-    ws.send(JSON.stringify({ type: 'initial', data: rows }))
-  } catch (error) {
-    console.error('Error sending initial data:', error)
-  }
+  const { dbPath, table, query } = clientData
+  const db = dbOnVolume(dbPath)
+  const rows = query
+    ? db.query(query).all()
+    : db.query(`SELECT * FROM ${table}`).all()
+  ws.send(JSON.stringify({ type: 'initial', data: rows }))
 }
 
 export const websocketHandlers = {
@@ -52,12 +48,16 @@ export const websocketHandlers = {
     ws.send(JSON.stringify({ type: 'connected' }))
   },
   message(ws: WebSocket, message: string | Buffer | ClientData) {
-    // Bun sends as string/Buffer; Elysia sends as json (ClientData)
-    const clientData =
-      typeof message === 'string' ? JSON.parse(message) : message
-    clients.set(ws, clientData)
-    setupDatabaseWatcher(clientData)
-    sendInitialData(ws, clientData)
+    try {
+      // Bun sends as string/Buffer; Elysia sends as json (ClientData)
+      const clientData =
+        typeof message === 'string' ? JSON.parse(message) : message
+      clients.set(ws, clientData)
+      setupDatabaseWatcher(clientData)
+      sendInitialData(ws, clientData)
+    } catch (error) {
+      console.error('Error sending initial data:', error)
+    }
   },
   close(ws: WebSocket) {
     clients.delete(ws)

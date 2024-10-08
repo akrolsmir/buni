@@ -1,11 +1,11 @@
-// A minimal demo of a fake Slack clone with auth, db, and realtime
+// A demo of a fake Slack clone with auth, db, and realtime
 import React, { useEffect, useState } from 'react'
 
-// '%/buni/' provides some helpers for auth, querying db, and realtime
-import { useUser, AuthButton } from '%/buni/use-auth'
+// '%/buni/' provides helpers for managing auth, users, querying db, and realtime
+import { useUser, AuthButton, useAllUsers } from '%/buni/use-auth'
 import { query, useRealtime, run } from '%/buni/use-realtime'
 
-// Can also import libraries from esm.sh. Here we import lucide-react for icons
+// Can also import libraries from esm.sh. Here we import lucide-react for icons:
 import { CircleUser } from 'https://esm.sh/lucide-react'
 
 // Set up a new database for this app
@@ -42,25 +42,24 @@ async function writeMessage(author_id: string, content: string) {
 }
 
 export default function Component() {
+  // Provides the current signed-in user
   const user = useUser()
-  const [users, setUsers] = useRealtime<DbUser>({
-    // This special table contains all users
-    dbPath: '/buni/db.sqlite',
-    table: 'Users',
-  })
-  const usersMap = new Map(users.map((user) => [user.user_id, user]))
+  // Provides all users on the platform
+  const users: DbUser[] = useAllUsers()
 
-  const [newMessage, setNewMessage] = useState('')
-  const [messages, setMessages] = useRealtime<Message>({
-    dbPath: DB_PATH,
-    table: 'Messages',
-  })
-  // Initialize the database
+  // Initialize the database for this app
   useEffect(() => {
     // Multi-query commands need to use `run` instead of `query`
     run({ filename: DB_PATH, content: INIT_SQL })
   }, [])
 
+  // Special realtime hook which always has all the rows in a table
+  const [messages, setMessages] = useRealtime<Message>({
+    dbPath: DB_PATH,
+    table: 'Messages',
+  })
+
+  const [newMessage, setNewMessage] = useState('')
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
       await writeMessage(user?.id ?? 'anon', newMessage)
@@ -89,6 +88,7 @@ export default function Component() {
               </div>
             </>
           )}
+          {/* A special button that lets the user sign in or out */}
           <AuthButton user={user} />
         </div>
       </header>
@@ -103,7 +103,7 @@ export default function Component() {
                 new Date(a.created_at).getTime()
             )
             .map((msg) => {
-              const user = usersMap.get(msg.author_id)
+              const user = users.find((u) => u.user_id === msg.author_id)
               return (
                 <div key={msg.message_id} className="p-1 px-2">
                   <div className="flex">

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { useRealtime } from './use-realtime'
+import type { DbUser } from './db'
 
 // TODO: merge with DbUser type?
 // Rename user_id to id, to avatar_url; add created_at
@@ -46,10 +48,19 @@ export function AuthButton(props: {
     <button
       onClick={handleAuth}
       className={`px-4 py-2 rounded ml-4 ${
-        className ? className : 'bg-purple-700 text-white'
+        className ? className : 'bg-gray-700 text-white'
       }`}
     >
       {user ? 'Sign out' : 'Sign in'}
     </button>
   )
+}
+
+export function useAllUsers() {
+  const [users, setUsers] = useRealtime<DbUser>({
+    // This special table contains all users
+    dbPath: '/buni/db.sqlite',
+    table: 'Users',
+  })
+  return users
 }

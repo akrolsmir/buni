@@ -19,12 +19,17 @@ Carefully analyze the user's request and break it down into implementable featur
 
 Your output should be a single, complete React component. React and library calls such as useState may be imported eg "import { useState } from 'react'" or "import React from 'react'". Do not include any explanation or additional text outside of the function.
 
-Here is the user's request:
+Here is an advanced example, including auth, db, and realtime helpers you can use from '%/buni/':
+<example>
+{{EXAMPLE_COMPONENT}}
+</example>
+
+Now, here is the user's request:
 <request>
 {{REQUEST}}
 </request>
 
-Based on this request, generate the React component as described above. Remember to start with "export default function Component() {" and use TSX syntax with Tailwind CSS for styling.
+Based on this request, generate the React component as described above. Remember to include "export default function Component() {" and use TSX syntax with Tailwind CSS for styling.
 `
 
 export function requestToFilename(request: string) {
@@ -70,7 +75,8 @@ export async function sudoAnthropic(
 }
 
 // Streaming version of generate; instead of writing to a file, stream the code
-export function generateCodeStream(request: string) {
+export async function generateCodeStream(request: string) {
+  const example = await Bun.file('codegen/slacc/min-slacc.tsx').text()
   const stream = anthropic.messages.create({
     model: 'claude-3-5-sonnet-20240620',
     // model: 'claude-3-haiku-20240307', // Faster, but worse
@@ -83,7 +89,10 @@ export function generateCodeStream(request: string) {
         content: [
           {
             type: 'text',
-            text: REACT_GEN_PROMPT.replace('{{REQUEST}}', request),
+            text: REACT_GEN_PROMPT.replace('{{REQUEST}}', request).replace(
+              '{{EXAMPLE_COMPONENT}}',
+              example
+            ),
           },
         ],
       },

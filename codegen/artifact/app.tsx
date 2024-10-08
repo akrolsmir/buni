@@ -66,7 +66,12 @@ export default function Artifact() {
             <h1 className="text-xl font-bold">
               <div className="flex items-center">
                 <Split className="w-6 h-6 mr-2" />
-                <span>yield</span>
+                <span>
+                  yield{' '}
+                  <span className="text-xs bg-white text-blue-500 rounded-full px-1.5 py-0.5 ml-1">
+                    alpha
+                  </span>
+                </span>
               </div>
             </h1>
             <div className="flex items-center">
@@ -108,6 +113,9 @@ export default function Artifact() {
               </button>
             </div>
             <div className="flex flex-col gap-1 w-full max-w-md p-6">
+              <p className="text-xs text-gray-400 mt-2 text-center italic">
+                During alpha, these apps may be deleted at any time!
+              </p>
               {apps
                 .sort(
                   (a, b) =>

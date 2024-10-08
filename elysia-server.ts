@@ -127,11 +127,12 @@ const app = new Elysia()
   })
 
   // Route DB operations through server for now
-  // Though, maybe we can just use /db/query for all of them?
+  // Though, maybe we can just use /db/query for all of them?'
+  // Run seems to support multi-query, and also we permit creating new dbs here.
   .post(
     '/db/run',
     async ({ body }) => {
-      const db = dbOnVolume(body.filename)
+      const db = dbOnVolume(body.filename, { create: true })
       db.run(body.content)
       return { success: true }
     },

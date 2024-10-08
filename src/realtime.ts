@@ -35,12 +35,16 @@ function setupDatabaseWatcher(clientData: ClientData) {
 }
 
 function sendInitialData(ws: WebSocket, clientData: ClientData) {
-  const { dbPath, table, query } = clientData
-  const db = dbOnVolume(dbPath)
-  const rows = query
-    ? db.query(query).all()
-    : db.query(`SELECT * FROM ${table}`).all()
-  ws.send(JSON.stringify({ type: 'initial', data: rows }))
+  try {
+    const { dbPath, table, query } = clientData
+    const db = dbOnVolume(dbPath)
+    const rows = query
+      ? db.query(query).all()
+      : db.query(`SELECT * FROM ${table}`).all()
+    ws.send(JSON.stringify({ type: 'initial', data: rows }))
+  } catch (error) {
+    console.error('Error sending initial data:', error)
+  }
 }
 
 export const websocketHandlers = {

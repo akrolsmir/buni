@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 
 // '%/buni/' provides some helpers for auth, querying db, and realtime
 import { useUser, AuthButton } from '%/buni/use-auth'
-import { query, useRealtime } from '%/buni/use-realtime'
+import { query, useRealtime, run } from '%/buni/use-realtime'
 
 // Can also import libraries from esm.sh. Here we import lucide-react for icons
 import { CircleUser } from 'https://esm.sh/lucide-react'
@@ -57,7 +57,8 @@ export default function Component() {
   })
   // Initialize the database
   useEffect(() => {
-    query({ filename: DB_PATH, query: INIT_SQL })
+    // Multi-query commands need to use `run` instead of `query`
+    run({ filename: DB_PATH, content: INIT_SQL })
   }, [])
 
   const handleSendMessage = async () => {

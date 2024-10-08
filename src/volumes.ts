@@ -50,8 +50,8 @@ export function getVolumePath() {
 }
 
 // Get the sqlite db like 'foo/db.sqlite'
-export function dbOnVolume(filename: string) {
-  return new Database(vpath(filename), { create: true })
+export function dbOnVolume(filename: string, options?: { create: boolean }) {
+  return new Database(vpath(filename), options)
 }
 
 export async function deleteFromVolume(folderName: string) {

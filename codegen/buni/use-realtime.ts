@@ -45,3 +45,11 @@ export async function query(props: {
   })
   return await res.json()
 }
+
+// For executing multi-query SQL commands
+export async function run(props: { filename: string; content: string }) {
+  await fetch('/db/run', {
+    method: 'POST',
+    body: JSON.stringify(props),
+  })
+}

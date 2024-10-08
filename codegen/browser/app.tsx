@@ -54,6 +54,10 @@ export default function Component({ files = [] }: { files?: string[] }) {
       }
     };
 
+    const sortedChildren = isFolder
+      ? Object.entries(children).sort(([a], [b]) => a.localeCompare(b))
+      : [];
+
     return (
       <div className="ml-4">
         <div 
@@ -69,7 +73,7 @@ export default function Component({ files = [] }: { files?: string[] }) {
         </div>
         {isFolder && isExpanded && (
           <div className="ml-4">
-            {Object.entries(children).map(([childName, childChildren]) => (
+            {sortedChildren.map(([childName, childChildren]) => (
               <FileTreeItem 
                 key={`${path}/${childName}`}
                 name={childName}
@@ -85,9 +89,11 @@ export default function Component({ files = [] }: { files?: string[] }) {
 
   const fileTree = buildFileTree(files.length > 0 ? files : defaultFiles);
 
+  const sortedRootItems = Object.entries(fileTree).sort(([a], [b]) => a.localeCompare(b));
+
   return (
     <div className="border border-gray-300 rounded p-2">
-      {Object.entries(fileTree).map(([name, children]) => (
+      {sortedRootItems.map(([name, children]) => (
         <FileTreeItem key={name} name={name} children={children} path={name} />
       ))}
     </div>

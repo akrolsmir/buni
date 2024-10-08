@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 
+// TODO: merge with DbUser type?
+// Rename user_id to id, to avatar_url; add created_at
 export type User = {
   id: string
   name: string

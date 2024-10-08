@@ -127,6 +127,7 @@ const app = new Elysia()
   })
 
   // Route DB operations through server for now
+  // Though, maybe we can just use /db/query for all of them?
   .post(
     '/db/run',
     async ({ body }) => {

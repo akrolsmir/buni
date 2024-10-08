@@ -33,3 +33,15 @@ export function useRealtime<T>(props: {
 
   return [data, setData]
 }
+
+export async function query(props: {
+  filename: string
+  query: string
+  params?: Record<string, any>
+}) {
+  const res = await fetch('/db/query', {
+    method: 'POST',
+    body: JSON.stringify(props),
+  })
+  return await res.json()
+}

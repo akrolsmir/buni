@@ -34,6 +34,7 @@ export async function compileReact(
     entrypoints: [`./dist/main.${hash}.tsx`],
     // Don't bundle stuff we importmap from esm.sh
     external: ['react', 'react-dom', '@uiw/react-textarea-code-editor'],
+    experimentalCss: true,
   })
   // Delete the temp files
   unlinkSync(`./dist/App.${hash}.tsx`)

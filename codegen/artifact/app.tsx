@@ -60,7 +60,7 @@ export default function Artifact() {
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
-      <div className="h-2/3 md:w-1/2 overflow-auto md:h-screen">
+      <div className="h-2/3 md:w-1/2 overflow-auto md:h-screen bg-gray-100">
         <div className="h-full">
           <header className="bg-blue-500 text-white p-4 flex justify-between items-center">
             <h1 className="text-xl font-bold">
@@ -93,49 +93,55 @@ export default function Artifact() {
               <AuthButton user={user} className="bg-blue-600" />
             </div>
           </header>
-          <div className="flex flex-col items-center justify-center min-h-screen h-full w-full bg-gray-100">
-            <div className="w-full max-w-md p-6 rounded-lg shadow-md">
-              <input
-                type="text"
-                onKeyDown={(e) => e.key === 'Enter' && generateArtifactStream()}
-                autoFocus
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="w-full px-4 py-2 mb-4 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter a prompt..."
-              />
-              <button
-                onClick={generateArtifactStream}
-                className="w-full px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center"
-                disabled={generating}
-              >
-                {generating ? <Spinner /> : 'Generate app'}
-              </button>
+          <div className="flex flex-col items-center h-full w-full">
+            <div className="w-full max-w-md p-6 mt-4">
+              <div className="w-full max-w-md p-6 rounded-lg shadow-md">
+                <input
+                  type="text"
+                  onKeyDown={(e) =>
+                    e.key === 'Enter' && generateArtifactStream()
+                  }
+                  autoFocus
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  className="w-full px-4 py-2 mb-4 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter a prompt..."
+                />
+                <button
+                  onClick={generateArtifactStream}
+                  className="w-full px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center"
+                  disabled={generating}
+                >
+                  {generating ? <Spinner /> : 'Generate app'}
+                </button>
+              </div>
             </div>
-            <div className="flex flex-col gap-1 w-full max-w-md p-6">
-              <p className="text-xs text-gray-400 mt-2 text-center italic">
-                During alpha, these apps may be deleted at any time!
-              </p>
-              {apps
-                .sort(
-                  (a, b) =>
-                    new Date(b.created_at).getTime() -
-                    new Date(a.created_at).getTime()
-                )
-                .map((app) => (
-                  <div
-                    key={app.app_id}
-                    className="overflow-hidden text-ellipsis whitespace-nowrap"
-                  >
-                    <a
-                      className="hover:underline text-sm text-gray-500"
-                      href={`/edit/${app.app_name}/app.tsx`}
-                      title={app.description}
+            <div className="w-full max-w-md p-6">
+              <div className="flex flex-col gap-1 w-full max-w-md">
+                <p className="text-xs text-gray-400 mt-2 text-center italic">
+                  During alpha, these apps may be deleted at any time!
+                </p>
+                {apps
+                  .sort(
+                    (a, b) =>
+                      new Date(b.created_at).getTime() -
+                      new Date(a.created_at).getTime()
+                  )
+                  .map((app) => (
+                    <div
+                      key={app.app_id}
+                      className="overflow-hidden text-ellipsis whitespace-nowrap"
                     >
-                      {app.description}
-                    </a>
-                  </div>
-                ))}
+                      <a
+                        className="hover:underline text-sm text-gray-500"
+                        href={`/edit/${app.app_name}/app.tsx`}
+                        title={app.description}
+                      >
+                        {app.description}
+                      </a>
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
         </div>

@@ -111,6 +111,11 @@ Deleted prompts from people:
 - "Can you build me a Slack-like interface, with a sidebar of different chats. One of the chats should be "investigations", which shows a graph data UI using react-flow"
   - reactflow has css, which doesn't import correctly via esm.sh since you can't just `import "x.css"` in a browser JS file. Might need a more complicated css build setup.
 - "App that let's people put their thumb in a screen, and then after 5 seconds selects one at random, like chwazi"
+- A simple ebook reader. I just want the interface for reading. Here's an epub file: https://github.com/danigm/epub-rs/raw/refs/heads/master/tests/docs/book2.epub
+  - esm.sh is maybe hurting more than helping here? tried epub, epub2, epub.js, now react-reader
+  - Also need to proxy the Github thing due to cors...
+    - Tried writing my own but doesn't parse due to epub.js reasons... actually corsproxy.io seems better
+  - Fundamentally: hard to know which things might work. Very jagged capabilities, and when you try sth and it fails feels like a broken promise.
 
 ### Misc TODOs
 

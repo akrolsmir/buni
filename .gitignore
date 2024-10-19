@@ -1,6 +1,7 @@
 !codegen
 codegen/*
 !codegen/artifact/
+!codegen/artifast/
 !codegen/buni/
 !codegen/slacc/
 !codegen/browser/

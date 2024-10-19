@@ -14,6 +14,7 @@ import { websocketHandlers, type ClientData } from './src/realtime'
 import { compileReact } from 'src/render'
 import { AUTH_CONFIG } from 'src/auth'
 import { swagger } from '@elysiajs/swagger'
+import { sudoCerebras } from 'src/cerebras'
 
 const app = new Elysia()
   .use(swagger())
@@ -167,10 +168,15 @@ const app = new Elysia()
     async ({ body }) => {
       return await sudoAnthropic(body as any)
     },
-    {
-      type: 'json',
-      body: t.Any(),
-    }
+    { type: 'json', body: t.Any() }
+  )
+
+  .post(
+    '/cerebras',
+    async ({ body }) => {
+      return await sudoCerebras(body as any)
+    },
+    { type: 'json', body: t.Any() }
   )
 
   // List volumes route

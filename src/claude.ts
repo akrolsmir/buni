@@ -1,6 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { writeToVolume } from './volumes'
-import { applyDiff } from './code'
 
 const anthropic = new Anthropic()
 
@@ -31,41 +29,6 @@ Now, here is the user's request:
 
 Based on this request, generate the React component as described above. Remember to include "export default function Component() {" and use TSX syntax with Tailwind CSS for styling.
 `
-
-export function requestToFilename(request: string) {
-  return (
-    request
-      .toLowerCase()
-      .replace(/\s/g, '-')
-      .replace(/[^a-z0-9-]/g, '') + '.tsx'
-  )
-}
-
-// Prompt Claude to generate code for a React component, and save it to a file
-export async function generateCode(request: string) {
-  const msg = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20240620',
-    max_tokens: 5000,
-    temperature: 0,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: REACT_GEN_PROMPT.replace('{{REQUEST}}', request),
-          },
-        ],
-      },
-    ],
-  })
-  const code = (msg.content[0] as { text: string }).text
-
-  // Save code to the file, and return the filename
-  const filename = requestToFilename(request)
-  await writeToVolume(filename, code)
-  return filename
-}
 
 // Directly access the Anthropic API
 export async function sudoAnthropic(

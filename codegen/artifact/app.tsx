@@ -3,6 +3,7 @@ import CodeEditor from '@uiw/react-textarea-code-editor'
 import { createApp, listApps } from '%/buni/db'
 import { useUser, AuthButton, type User } from '%/buni/use-auth'
 import { Split } from 'https://esm.sh/lucide-react'
+import { extractBlock } from '%/buni/codegen'
 
 // TODO: Actually bootstrap this?
 const DEFAULT_CODE = `// Enter a prompt to get started!
@@ -18,11 +19,6 @@ export default function Artifact() {
 
   async function generateArtifactStream() {
     setGenerating(true)
-    await createApp({
-      creator_id: user?.id ?? 'anon',
-      app_name: appName(prompt),
-      description: prompt,
-    })
 
     // Streaming API, so continually update the state with the new text
     const res = await fetch('/generate-stream', {
@@ -39,13 +35,24 @@ export default function Artifact() {
       setGenerated(content)
     }
 
+    // TODO: Probably some assumptions around appName are broken
+    const slug = extractBlock(content, 'slug')
+    const title = extractBlock(content, 'title')
+    const result = extractBlock(content, 'result')
+
+    await createApp({
+      creator_id: user?.id ?? 'anon',
+      app_name: slug,
+      description: prompt,
+    })
+
     // Write the generated code to a file
-    const filename = appName(prompt) + '/app.tsx'
+    const filename = `${slug}/app.tsx`
     await fetch('/write', {
       method: 'POST',
       body: JSON.stringify({
         filename,
-        content: content,
+        content: result,
       }),
     })
 

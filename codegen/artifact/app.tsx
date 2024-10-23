@@ -154,7 +154,7 @@ export default function Artifact() {
         </div>
       </div>
 
-      <div className="h-1/3 md:w-1/2 overflow-auto md:h-screen">
+      <div className="h-1/3 md:w-1/2 md:h-screen flex flex-col">
         <CodeEditor
           value={generated}
           language="tsx"
@@ -165,7 +165,8 @@ export default function Artifact() {
             backgroundColor: '#f5f5f5',
             fontFamily:
               'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-            height: '100%',
+            flexGrow: 1,
+            overflow: 'auto',
           }}
         />
       </div>

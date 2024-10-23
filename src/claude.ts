@@ -41,7 +41,7 @@ export async function sudoAnthropic(
 export async function generateCodeStream(request: string) {
   const example = await Bun.file('codegen/slacc/min-slacc.tsx').text()
   const stream = anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20240620',
+    model: 'claude-3-5-sonnet-20241022',
     // model: 'claude-3-haiku-20240307', // Faster, but worse
     max_tokens: 4096,
     temperature: 0,

@@ -39,7 +39,11 @@ export function AuthButton(props: {
     if (callbackUrl) {
       url += `?callbackUrl=${callbackUrl}`
     } else {
-      url += '?callbackUrl=' + window.location.href
+      // Return to the current url (or parent, if we're in an iframe)
+      const href = window.location.host
+        ? window.location.href
+        : window.parent.location.href
+      url += '?callbackUrl=' + href
     }
     window.open(url, '_blank', 'width=500,height=600')
   }

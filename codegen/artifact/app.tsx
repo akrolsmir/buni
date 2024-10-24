@@ -36,9 +36,9 @@ export default function Artifact() {
     }
 
     // TODO: Probably some assumptions around appName are broken
-    const slug = extractBlock(content, 'slug')
-    const title = extractBlock(content, 'title')
-    const result = extractBlock(content, 'result')
+    const slug = extractBlock(content, 'output_slug')
+    const title = extractBlock(content, 'output_title')
+    const result = extractBlock(content, 'output_code')
 
     await createApp({
       creator_id: user?.id ?? 'anon',

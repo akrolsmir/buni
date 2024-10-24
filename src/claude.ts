@@ -16,20 +16,20 @@ Follow these guidelines when creating the component:
 Carefully analyze the user's request and break it down into implementable features. If the request is vague or lacks specific details, make reasonable assumptions and document them in comments within the code.
 
 Your output should include:
-- A single, complete React component in <result> tags
-- A simple, memorable slug for the app (lowercase letters & dashes only) in <slug> tags
-- A suggested title for the app in <title> tags
+- A single, complete React component in <output_code> tags
+- A simple, memorable slug for the app (lowercase letters & dashes only) in <output_slug> tags
+- A suggested title for the app in <output_title> tags
 
 Here is an advanced example, including auth, db, and realtime helpers you can use from '%/buni/':
 <example>
-  <example_request>A mobile clone of Slack </example_request>
+  <example_request>A mobile clone of Slack, named "sl/acc"</example_request>
   <assistant_response>
   Here's a simple mobile Slack clone with auth, db, and realtime.
-  <slug>mobile-slack</slug>
-  <title>Mobile Slack Clone</title>
-  <result>
+  <output_slug>slacc</output_slug>
+  <output_title>sl/acc</output_title>
+  <output_code>
   {{EXAMPLE_COMPONENT}}
-  </result>
+  </output_code>
   </assistant_response>
 </example>
 

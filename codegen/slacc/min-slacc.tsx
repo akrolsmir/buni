@@ -1,4 +1,4 @@
-// A demo of a fake Slack clone with auth, db, and realtime
+// A demo of slacc, a fake Slack clone with auth, db, and realtime
 import React, { useEffect, useState } from 'react'
 
 // '%/buni/' provides helpers for managing auth, users, querying db, and realtime
@@ -9,6 +9,7 @@ import { query, useRealtime, run } from '%/buni/use-realtime'
 import { CircleUser } from 'https://esm.sh/lucide-react'
 
 // Set up a new database for this app
+// The database path should start with the app's slug
 const DB_PATH = '/slacc/min.sqlite'
 const INIT_SQL = `
 CREATE TABLE IF NOT EXISTS Messages (

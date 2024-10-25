@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 import { createApp, listApps, unvoteApp, upvoteApp } from '%/buni/db'
-import { useUser, AuthButton, type User } from '%/buni/use-auth'
+import { useUser, AuthButton } from '%/buni/use-auth'
 import { Split, Heart } from 'https://esm.sh/lucide-react'
 import { extractBlock } from '%/buni/codegen'
 import { useRealtime } from '%/buni/use-realtime'
@@ -118,18 +118,26 @@ export default function Artifact() {
             </div>
           </header>
           <div className="flex flex-col items-center h-full w-full">
-            <div className="w-full max-w-md p-6 mt-4">
-              <div className="w-full max-w-md p-6 rounded-lg shadow-md">
-                <input
-                  type="text"
-                  onKeyDown={(e) =>
-                    e.key === 'Enter' && generateArtifactStream()
-                  }
+            <div className="w-full max-w-xl p-6 mt-4">
+              <div className="w-full max-w-xl p-6 rounded-lg shadow-md">
+                <textarea
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.shiftKey) {
+                      e.preventDefault()
+                      generateArtifactStream()
+                    }
+                  }}
                   autoFocus
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className="w-full px-4 py-2 mb-4 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 mb-4 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden"
                   placeholder="Enter a prompt..."
+                  rows={1}
+                  style={{ minHeight: '38px', height: 'auto' }}
+                  onInput={(e) => {
+                    e.target.style.height = 'auto'
+                    e.target.style.height = e.target.scrollHeight + 'px'
+                  }}
                 />
                 <button
                   onClick={generateArtifactStream}

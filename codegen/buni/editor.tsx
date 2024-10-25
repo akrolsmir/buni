@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
 // Can also directly import esm.sh; make sure to exclude react
 // Import files from codegen/* as %/*
 // TODO: Consider making relative imports work with ./
 import {
-  backupAndSaveCode,
   initDB,
-  listMessages,
   loadVersion,
   writeMessage,
   deleteApp,
@@ -19,7 +17,7 @@ import FileBrowser from '%/browser/app'
 import { extractBlock, modifyCode, rewriteCode } from '%/buni/codegen'
 import Versions from '%/buni/versions'
 import { useRealtime } from '%/buni/use-realtime'
-import { useUser, AuthButton, type User } from '%/buni/use-auth'
+import { useUser } from '%/buni/use-auth'
 
 const DEFAULT_CODE = `const App = () => { return <h1>Hello World</h1> }; export default App;`
 
@@ -268,6 +266,9 @@ function Messages(props: {
   const [expandedDiffs, setExpandedDiffs] = useState<{
     [key: string]: boolean
   }>({})
+  const [expandedMessages, setExpandedMessages] = useState<{
+    [key: string]: boolean
+  }>({})
 
   function removeBlock(text: string, tag: string) {
     const start = text.indexOf(`<${tag}>`)
@@ -279,57 +280,80 @@ function Messages(props: {
     return text.slice(0, start)
   }
 
+  function SingleMessage(message: Message) {
+    const expanded = expandedMessages[message.message_id] || false
+    const diffExpanded = expandedDiffs[message.message_id] || false
+    const setExpanded = (value: boolean) =>
+      setExpandedMessages((prev) => ({ ...prev, [message.message_id]: value }))
+    const setDiffExpanded = (value: boolean) =>
+      setExpandedDiffs((prev) => ({ ...prev, [message.message_id]: value }))
+
+    const diffless = removeBlock(message.content, 'code_diff')
+    return (
+      <div key={message.message_id} className="mb-2 p-1">
+        <div className="flex items-baseline mb-1">
+          <strong className="text-lg">
+            {usersMap.get(message.author_id)?.username ?? 'anon'}
+          </strong>
+          <span className="text-xs text-gray-400 ml-2">
+            {new Date(message.created_at).toLocaleString()}
+          </span>
+        </div>
+        <div className="text-gray-700 whitespace-pre-wrap">
+          {diffless.length > 280 && !expanded ? (
+            <>
+              <p>
+                {diffless.slice(0, 280)}
+                <span
+                  className="hover:cursor-pointer text-blue-500 hover:underline"
+                  onClick={() => setExpanded(true)}
+                >
+                  ...more
+                </span>
+              </p>
+            </>
+          ) : (
+            <p>{diffless}</p>
+          )}
+        </div>
+        {message.content.includes('<code_diff>') && (
+          <div className="flex flex-row gap-2">
+            <button
+              className="px-2 py-1 bg-gray-200 text-sm"
+              onClick={() => setDiffExpanded(!diffExpanded)}
+            >
+              {diffExpanded ? 'Hide' : 'Show'} Diff
+            </button>
+            <button
+              className="px-2 py-1 bg-blue-100 text-sm"
+              onClick={() => onApplyDiff(message.content)}
+            >
+              Apply
+            </button>
+          </div>
+        )}
+
+        {diffExpanded && (
+          <CodeEditor
+            value={extractBlock(message.content, 'code_diff')}
+            language="diff"
+            readOnly
+            padding={10}
+            style={{
+              backgroundColor: '#f5f5f5',
+              fontFamily:
+                'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+            }}
+          />
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col-reverse h-full overflow-y-auto">
       {[...messages].reverse().map((message) => (
-        <div key={message.message_id} className="mb-2 p-1">
-          <div className="flex items-baseline mb-1">
-            <strong className="text-lg">
-              {usersMap.get(message.author_id)?.username ?? 'anon'}
-            </strong>
-            <span className="text-xs text-gray-400 ml-2">
-              {new Date(message.created_at).toLocaleString()}
-            </span>
-          </div>
-          <div className="text-gray-700">
-            <p>{removeBlock(message.content, 'code_diff')}</p>
-          </div>
-          {message.content.includes('<code_diff>') && (
-            <div className="flex flex-row gap-2">
-              <button
-                className="px-2 py-1 bg-gray-200 text-sm"
-                onClick={() =>
-                  setExpandedDiffs((prev) => ({
-                    ...prev,
-                    [message.message_id]: !prev[message.message_id],
-                  }))
-                }
-              >
-                {expandedDiffs[message.message_id] ? 'Hide' : 'Show'} Diff
-              </button>
-              <button
-                className="px-2 py-1 bg-blue-100 text-sm"
-                onClick={() => onApplyDiff(message.content)}
-              >
-                Apply
-              </button>
-            </div>
-          )}
-
-          {expandedDiffs[message.message_id] && (
-            <CodeEditor
-              value={extractBlock(message.content, 'code_diff')}
-              language="diff"
-              readOnly
-              padding={10}
-              style={{
-                backgroundColor: '#f5f5f5',
-                fontFamily:
-                  'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-              }}
-            />
-          )}
-        </div>
+        <SingleMessage key={message.message_id} {...message} />
       ))}
     </div>
   )

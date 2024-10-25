@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react'
 import CodeEditor from '@uiw/react-textarea-code-editor'
-import { createApp, listApps } from '%/buni/db'
+import { createApp, listApps, unvoteApp, upvoteApp } from '%/buni/db'
 import { useUser, AuthButton, type User } from '%/buni/use-auth'
-import { Split } from 'https://esm.sh/lucide-react'
+import { Split, Heart } from 'https://esm.sh/lucide-react'
 import { extractBlock } from '%/buni/codegen'
+import { useRealtime } from '%/buni/use-realtime'
 
 // TODO: Actually bootstrap this?
 const DEFAULT_CODE = `// Enter a prompt to get started!
 `
+
+type Upvote = {
+  app_id: string
+  user_id: string
+  created_at: string
+}
 
 // Centered single input which takes in a prompt like "a todo list"
 // On submit, generates an artifact using Claude Sonnet
@@ -16,6 +23,16 @@ export default function Artifact() {
   const [generating, setGenerating] = useState(false)
   const [generated, setGenerated] = useState(DEFAULT_CODE)
   const user = useUser()
+  const [upvotes] = useRealtime<Upvote>({
+    dbPath: '/buni/db.sqlite',
+    table: 'Upvotes',
+  })
+
+  // Create a map of app IDs to total upvotes
+  const upvotesMap = upvotes.reduce((acc, upvote) => {
+    acc[upvote.app_id] = (acc[upvote.app_id] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
 
   async function generateArtifactStream() {
     setGenerating(true)
@@ -129,18 +146,55 @@ export default function Artifact() {
                   During alpha, these apps may be deleted at any time!
                 </p>
                 {apps
-                  .sort(
-                    (a, b) =>
+                  .sort((a, b) => {
+                    const aUpvotes = upvotesMap[a.app_id] || 0
+                    const bUpvotes = upvotesMap[b.app_id] || 0
+                    if (aUpvotes !== bUpvotes) {
+                      return bUpvotes - aUpvotes // Sort by upvotes descending
+                    }
+                    // If upvotes are equal, sort by date
+                    return (
                       new Date(b.created_at).getTime() -
                       new Date(a.created_at).getTime()
-                  )
+                    )
+                  })
                   .map((app) => (
                     <div
                       key={app.app_id}
-                      className="overflow-hidden text-ellipsis whitespace-nowrap"
+                      className="flex items-center overflow-hidden text-ellipsis whitespace-nowrap"
                     >
+                      <div
+                        className="flex items-center mr-2 cursor-pointer hover:bg-gray-100 rounded p-1"
+                        onClick={() => {
+                          const hasUpvoted = upvotes.some(
+                            (u) =>
+                              u.app_id === app.app_id &&
+                              u.user_id === (user?.id ?? 'anon')
+                          )
+                          if (hasUpvoted) {
+                            unvoteApp(app.app_id, user?.id ?? 'anon')
+                          } else {
+                            upvoteApp(app.app_id, user?.id ?? 'anon')
+                          }
+                        }}
+                      >
+                        <Heart
+                          className={`w-4 h-4 mr-1 ${
+                            upvotes.some(
+                              (u) =>
+                                u.app_id === app.app_id &&
+                                u.user_id === (user?.id ?? 'anon')
+                            )
+                              ? 'text-red-500'
+                              : 'text-gray-400'
+                          }`}
+                        />
+                        <span className="text-xs text-gray-400">
+                          {upvotesMap[app.app_id] || 0}
+                        </span>
+                      </div>
                       <a
-                        className="hover:underline text-sm text-gray-500"
+                        className="hover:underline text-sm text-gray-500 flex-grow"
                         href={`/edit/${app.app_name}/app.tsx`}
                         title={app.description}
                       >

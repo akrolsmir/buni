@@ -44,6 +44,12 @@ CREATE TABLE IF NOT EXISTS Versions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (filename, version)
 );
+CREATE TABLE IF NOT EXISTS Upvotes (
+    app_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (app_id, user_id)
+);
 
 `
 
@@ -192,6 +198,25 @@ export async function deleteApp(app_name: string) {
   await query(`DELETE FROM Apps WHERE app_name = $app_name`, {
     $app_name: app_name,
   })
+}
+export async function upvoteApp(app_id: string, user_id: string) {
+  await query(
+    `INSERT INTO Upvotes (app_id, user_id) VALUES ($app_id, $user_id)`,
+    {
+      $app_id: app_id,
+      $user_id: user_id,
+    }
+  )
+}
+
+export async function unvoteApp(app_id: string, user_id: string) {
+  await query(
+    `DELETE FROM Upvotes WHERE app_id = $app_id AND user_id = $user_id`,
+    {
+      $app_id: app_id,
+      $user_id: user_id,
+    }
+  )
 }
 
 export type DbUser = {

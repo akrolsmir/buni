@@ -20,11 +20,14 @@ export async function createNextJSProject(
           start: 'next start',
         },
         dependencies: {
-          next: '^14.1.0',
+          next: '^15.0.3',
           react: '^18.2.0',
           'react-dom': '^18.2.0',
         },
         devDependencies: {
+          typescript: '^5.2.2',
+          '@types/react': '^18.2.0',
+          '@types/node': '^22.10.1',
           tailwindcss: '^3.4.1',
           postcss: '^8.4.35',
           autoprefixer: '^10.4.17',
@@ -57,7 +60,7 @@ module.exports = {
   )
 
   // Add component and styles
-  zip.file('app/page.tsx', code)
+  zip.file('app/page.tsx', `'use client'\n\n${code}`)
   zip.file(
     'app/globals.css',
     '@tailwind base;\n@tailwind components;\n@tailwind utilities;'
@@ -96,6 +99,8 @@ npm run dev
 
 ## Using bun
 
+Bun (https://bun.sh/) is a fast Javascript runtime & package manager.
+
 \`\`\`bash
 # Install dependencies
 bun install
@@ -108,6 +113,29 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ---
 Made with [yield.sh](https://yield.sh)
+`
+  )
+
+  // Add .gitignore
+  zip.file(
+    '.gitignore',
+    `# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# misc
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
 `
   )
 

@@ -73,6 +73,13 @@ export default function Editor(props: { initialCode?: string }) {
     window.open(url.replace('/edit/', '/app/'), '_blank')
   }
   async function exportNextjs() {
+    if (code.includes("from '%/buni")) {
+      alert(
+        "Warning: this export won't work out of the box, since it uses special code for the database or auth. " +
+          'Email Austin (akrolsmir@gmail.com) if you need help with this.'
+      )
+    }
+
     const response = await fetch('/export-nextjs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

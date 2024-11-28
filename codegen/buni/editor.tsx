@@ -72,11 +72,31 @@ export default function Editor(props: { initialCode?: string }) {
   function openPreview() {
     window.open(url.replace('/edit/', '/app/'), '_blank')
   }
-  function copyExport() {
-    const esmURL = url.replace('/edit/', '/esm/')
-    const importText = `import Component from "${esmURL}"`
-    navigator.clipboard.writeText(importText)
-    alert(`Copied to clipboard:\n\n${importText}`)
+  async function exportNextjs() {
+    const response = await fetch('/export-nextjs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        projectName: appName,
+      }),
+    })
+
+    if (!response.ok) {
+      alert('Failed to export project')
+      return
+    }
+
+    // Create a download link for the zip file
+    const blob = await response.blob()
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = downloadUrl
+    a.download = `${appName}.zip`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(downloadUrl)
   }
   async function newVersion() {
     const filename = url.split('/edit/')[1]
@@ -169,12 +189,6 @@ export default function Editor(props: { initialCode?: string }) {
             </button>
             <button
               className="text-blue-500 text-sm hover:text-blue-700"
-              onClick={copyExport}
-            >
-              Export
-            </button>
-            <button
-              className="text-blue-500 text-sm hover:text-blue-700"
               onClick={async () => {
                 await newVersion()
                 await saveCode(code)
@@ -208,6 +222,12 @@ export default function Editor(props: { initialCode?: string }) {
                 // TODO: reload versions
               }}
             />
+            <button
+              className="text-blue-500 text-sm hover:text-blue-700"
+              onClick={exportNextjs}
+            >
+              Export to .zip
+            </button>
           </div>
         </div>
         <div className="flex-grow overflow-auto">

@@ -15,6 +15,7 @@ import { compileReact } from 'src/render'
 import { AUTH_CONFIG } from 'src/auth'
 import { swagger } from '@elysiajs/swagger'
 import { sudoCerebras } from 'src/cerebras'
+import { createNextJSProject } from './src/export-nextjs'
 
 const app = new Elysia()
   .use(swagger())
@@ -188,6 +189,27 @@ const app = new Elysia()
     await deleteFromVolume(params.appName)
     return { success: true }
   })
+
+  // Export a Next.js project
+  .post(
+    '/export-nextjs',
+    async ({ body, set }) => {
+      const zipContent = await createNextJSProject(body.code, body.projectName)
+
+      set.headers['Content-Type'] = 'application/zip'
+      set.headers[
+        'Content-Disposition'
+      ] = `attachment; filename="${body.projectName}.zip"`
+
+      return zipContent
+    },
+    {
+      body: t.Object({
+        code: t.String(),
+        projectName: t.String(),
+      }),
+    }
+  )
 
   // Take a screenshot? Not currently working except locally
   .get(

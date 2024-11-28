@@ -318,15 +318,17 @@ function Messages(props: {
     const diffless = removeBlock(message.content, 'code_diff')
     return (
       <div key={message.message_id} className="mb-2 p-1">
-        <div className="flex items-baseline mb-1">
-          <strong className="text-lg">
-            {usersMap.get(message.author_id)?.username ?? 'anon'}
-          </strong>
-          <span className="text-xs text-gray-400 ml-2">
-            {new Date(message.created_at).toLocaleString()}
-          </span>
+        <div className="flex">
+          <div className="flex items-center gap-2 group mb-0.5">
+            <span className="text-gray-700 font-semibold">
+              {usersMap.get(message.author_id)?.username ?? 'anon'}
+            </span>
+            <span className="hidden group-hover:inline text-xs font-light text-gray-400 whitespace-nowrap bg-none">
+              {new Date(message.created_at).toLocaleString()}
+            </span>
+          </div>
         </div>
-        <div className="text-gray-700 whitespace-pre-wrap">
+        <div className="text-gray-700 whitespace-pre-wrap ml-3">
           {diffless.length > 280 && !expanded ? (
             <>
               <p>

@@ -39,8 +39,8 @@ async function backup() {
 }
 
 async function pushAll() {
-  await pushFly()
   await pushRender()
+  await pushFly()
 }
 
 if (import.meta.main) {

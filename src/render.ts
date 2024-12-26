@@ -8,7 +8,8 @@ export async function compileReact(
 ) {
   // Generate a unique hash for this pair of componentCode and props,
   // to avoid race conditions between different requests
-  const hash = Bun.hash(componentCode + JSON.stringify(props))
+  // Date.now() prevents duplicate hashes, though unclear why there are racing requests
+  const hash = Bun.hash(componentCode + JSON.stringify(props) + Date.now())
 
   // Write out App.tsx and main.tsx to temp files in /dist
   await Bun.write(`./dist/App.${hash}.tsx`, componentCode)
@@ -36,6 +37,7 @@ export async function compileReact(
     external: ['react', 'react-dom', '@uiw/react-textarea-code-editor'],
     experimentalCss: true,
   })
+
   // Delete the temp files
   unlinkSync(`./dist/App.${hash}.tsx`)
   unlinkSync(`./dist/main.${hash}.tsx`)

@@ -58,11 +58,11 @@ export async function compileReact(
         <script type="importmap">
           {
             "imports": {
-              "react": "https://esm.sh/react@18.3.1",
-              "react/jsx-dev-runtime": "https://esm.sh/react@18.3.1/jsx-dev-runtime",
-              "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
-              "react-dom": "https://esm.sh/react-dom@18.3.1",
-              "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+              "react": "https://esm.sh/react@18.3.1?dev",
+              "react/jsx-dev-runtime": "https://esm.sh/react@18.3.1/jsx-dev-runtime?dev",
+              "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime?dev",
+              "react-dom": "https://esm.sh/react-dom@18.3.1?dev",
+              "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?dev",
               "@uiw/react-textarea-code-editor": "https://esm.sh/@uiw/react-textarea-code-editor@3.0.2?external=react,react-dom"
             }
           }

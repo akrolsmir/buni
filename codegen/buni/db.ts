@@ -123,7 +123,7 @@ export async function writeMessage(
     $content)`,
     { $app_name: app_name, $author_id: author_id, $content: content }
   )
-  return res
+  return message_id
 }
 
 export type Message = {

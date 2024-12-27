@@ -54,19 +54,22 @@ export default function Editor(props: { initialCode?: string }) {
 
   const [modify, setModify] = useState('')
   const [modifying, setModifying] = useState(false)
+  const [applyingId, setApplyingId] = useState<string | null>(null)
   const handleModify = async () => {
     setModifying(true)
 
     await writeMessage(appName, userId, modify)
     const response = await modifyCode(code, modify)
-    await writeMessage(appName, 'claude', `${response}`)
+    const messageId = await writeMessage(appName, 'claude', `${response}`)
 
     // Apply the diff and save new version
+    setApplyingId(messageId)
     const diff = extractBlock(response, 'code_diff')
     const rewritten = await rewriteCode(code, diff)
     setCode(rewritten)
     await saveCode(rewritten)
     const version = await backupCode(filename, rewritten)
+    setApplyingId(null)
 
     // Post single message about the saved version
     await writeMessage(appName, 'claude', `Saved as version ${version}`)
@@ -143,15 +146,6 @@ export default function Editor(props: { initialCode?: string }) {
 
   const [showCode, setShowCode] = useState(false)
 
-  async function applyDiff(content: string) {
-    setModifying(true)
-    const diff = extractBlock(content, 'code_diff')
-    const rewritten = await rewriteCode(code, diff)
-    setCode(rewritten)
-    await writeMessage(appName, userId, 'Applied code diff!')
-    setModifying(false)
-  }
-
   return (
     <div className="flex flex-col md:flex-row h-screen">
       <div className="w-full md:w-1/2 flex flex-col h-full">
@@ -189,7 +183,7 @@ export default function Editor(props: { initialCode?: string }) {
           )}
         </div>
       </div>
-      <div className="w-full md:w-1/2 flex flex-col h-full p-2">
+      <div className="w-full md:w-1/2 flex flex-col h-full">
         <div className="sticky top-0 bg-white z-10">
           {/* Horizontal toolbar with links to different sections */}
           <div className="flex flex-row gap-6 m-1 mb-4">
@@ -250,7 +244,7 @@ export default function Editor(props: { initialCode?: string }) {
         </div>
         <div className="flex-grow overflow-auto">
           {showFileBrowser && <FileBrowser files={files} />}
-          <Messages appName={appName} onApplyDiff={applyDiff} />
+          <Messages appName={appName} applyingId={applyingId} />
         </div>
         <div className="flex m-2">
           <input
@@ -273,7 +267,14 @@ export default function Editor(props: { initialCode?: string }) {
             onClick={handleModify}
             disabled={modifying}
           >
-            {modifying ? 'Modifying...' : 'Modify with AI'}
+            {modifying ? (
+              <>
+                <Spinner color="text-white" />
+                Modifying...
+              </>
+            ) : (
+              'Modify'
+            )}
           </button>
         </div>
       </div>
@@ -281,11 +282,8 @@ export default function Editor(props: { initialCode?: string }) {
   )
 }
 
-function Messages(props: {
-  appName: string
-  onApplyDiff: (content: string) => void
-}) {
-  const { appName, onApplyDiff } = props
+function Messages(props: { appName: string; applyingId: string | null }) {
+  const { appName, applyingId } = props
   const [messages, setMessages] = useRealtime<Message>({
     dbPath: '/buni/db.sqlite',
     table: 'Messages',
@@ -326,12 +324,15 @@ function Messages(props: {
     const setDiffExpanded = (value: boolean) =>
       setExpandedDiffs((prev) => ({ ...prev, [message.message_id]: value }))
 
+    const isClaude = message.author_id === 'claude'
+    const textStyle = isClaude ? 'text-gray-700' : 'text-gray-700 bg-gray-100'
+
     const diffless = removeBlock(message.content, 'code_diff')
     return (
-      <div key={message.message_id} className="mb-2 p-1">
+      <div key={message.message_id} className={`p-2 px-4 ${textStyle}`}>
         <div className="flex">
           <div className="flex items-center gap-2 group mb-0.5">
-            <span className="text-gray-700 font-semibold">
+            <span className={`font-semibold`}>
               {usersMap.get(message.author_id)?.username ?? 'anon'}
             </span>
             <span className="hidden group-hover:inline text-xs font-light text-gray-400 whitespace-nowrap bg-none">
@@ -339,7 +340,7 @@ function Messages(props: {
             </span>
           </div>
         </div>
-        <div className="text-gray-700 whitespace-pre-wrap ml-3">
+        <div className={`whitespace-pre-wrap ml-3`}>
           {diffless.length > 280 && !expanded ? (
             <>
               <p>
@@ -364,12 +365,16 @@ function Messages(props: {
             >
               {diffExpanded ? 'Hide' : 'Show'} Diff
             </button>
-            <button
-              className="px-2 py-1 bg-blue-100 text-sm"
-              onClick={() => onApplyDiff(message.content)}
-            >
-              Apply
-            </button>
+            <span className="px-2 py-1 text-gray-500 text-sm">
+              {applyingId === message.message_id ? (
+                <>
+                  <Spinner />
+                  Applying...
+                </>
+              ) : (
+                'Applied'
+              )}
+            </span>
           </div>
         )}
 
@@ -396,5 +401,23 @@ function Messages(props: {
         <SingleMessage key={message.message_id} {...message} />
       ))}
     </div>
+  )
+}
+
+function Spinner(props: { color?: string }) {
+  const { color = 'text-blue-500' } = props
+  return (
+    <svg
+      className={`inline-block animate-spin mr-1 ${color} w-4 h-4`}
+      viewBox="0 0 24 24"
+    >
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        d="M 12 2 A 10 10 0 0 1 22 12 A 10 10 0 0 1 12 22 A 10 10 0 0 1 2 12"
+      />
+    </svg>
   )
 }

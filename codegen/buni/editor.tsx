@@ -59,7 +59,18 @@ export default function Editor(props: { initialCode?: string }) {
 
     await writeMessage(appName, userId, modify)
     const response = await modifyCode(code, modify)
-    await writeMessage(appName, 'claude', response)
+    await writeMessage(appName, 'claude', `${response}`)
+
+    // Apply the diff and save new version
+    const diff = extractBlock(response, 'code_diff')
+    const rewritten = await rewriteCode(code, diff)
+    setCode(rewritten)
+    await saveCode(rewritten)
+    const version = await backupCode(filename, rewritten)
+
+    // Post single message about the saved version
+    await writeMessage(appName, 'claude', `Saved as version ${version}`)
+
     setModify('')
     setModifying(false)
   }

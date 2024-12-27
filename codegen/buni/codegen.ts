@@ -16,7 +16,8 @@ Provide your code diff inside <code_diff> tags using the following format:
 - Lines to add: prefixed with +
 - Context lines: prefixed with space
 
-Example:
+<example_output>
+I'll add a prop to the component.
 <code_diff>
  import React from 'react';
  
@@ -30,17 +31,18 @@ Example:
    );
  }
 </code_diff>
+</example_output>
 
 Rules:
-1. Include only the necessary changes and context lines in your diff.
-2. Be concise; avoid context lines where possible, truncating context in between edits with "...".
-3. Do not include the line numbers to change.
-4. Preserve the original indentation of the code within <code_diff>.
-5. Do not write anything after the <code_diff>.
+1. Begin with 1-2 sentences that describe the changes you're making.
+2. Include only the necessary changes and context lines in your diff.
+3. Be concise; avoid context lines where possible, truncating context in between edits with "...".
+4. Consider React best practices and choose the most straightforward approach for ambiguous requests.
+5. Do not include the line numbers to change.
+6. Preserve the original indentation of the code within <code_diff>.
+7. Do not write anything after the <code_diff>.
 
-If no changes are needed or the modification is not possible, explain why instead of providing a diff.
-
-Consider React best practices and choose the most straightforward approach for ambiguous requests.`
+If no changes are needed or the modification is not possible, explain why instead of providing a diff.`
 
 export async function modifyCode(code: string, request: string) {
   const prompt = MODIFY_PROMPT.replace('{{EXISTING_CODE}}', code).replace(
